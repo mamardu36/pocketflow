@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens (HSL). Light: cool paper + ink. Dark: graphite. Primary: deep pine green. */
+@layer base {
+  :root {
+    --background: 90 10% 96%;
+    --foreground: 210 10% 9%;
+    --card: 0 0% 100%;
+    --muted: 90 8% 92%;
+    --muted-foreground: 210 5% 40%;
+    --border: 90 7% 88%;
+    --ring: 164 55% 28%;
+    --primary: 164 57% 26%;
+    --primary-foreground: 0 0% 100%;
+    --hero: 210 10% 11%;
+    --hero-foreground: 60 20% 97%;
+    --hero-muted: 60 5% 68%;
+    --positive: 158 60% 32%;
+    --warning: 36 85% 42%;
+    --danger: 356 55% 48%;
+    --shadow: 210 20% 10%;
+    color-scheme: light;
+  }
+
+  .dark {
+    --background: 200 8% 6%;
+    --foreground: 80 10% 93%;
+    --card: 200 7% 9.5%;
+    --muted: 200 6% 15%;
+    --muted-foreground: 80 4% 62%;
+    --border: 200 6% 17%;
+    --ring: 160 45% 55%;
+    --primary: 160 48% 52%;
+    --primary-foreground: 200 20% 7%;
+    --hero: 200 7% 12%;
+    --hero-foreground: 80 10% 95%;
+    --hero-muted: 80 4% 62%;
+    --positive: 155 50% 55%;
+    --warning: 38 85% 60%;
+    --danger: 356 70% 66%;
+    --shadow: 0 0% 0%;
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  input[type="date"] {
+    min-height: 3rem;
+  }
+}
+
+@layer utilities {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    transition-duration: 1ms !important;
+  }
+}
