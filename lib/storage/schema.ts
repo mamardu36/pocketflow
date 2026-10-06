@@ -91,7 +91,7 @@ function parsePreferences(v: unknown): UserPreferences {
   return {
     currency: oneOf(v.currency, CURRENCY_CODES, defaults.currency),
     theme: oneOf(v.theme, ["system", "light", "dark"] as const, defaults.theme),
-    language: oneOf(v.language, ["en"] as const, defaults.language),
+    language: oneOf(v.language, ["en", "fr"] as const, defaults.language),
     updatedAt: str(v.updatedAt, defaults.updatedAt),
   };
 }

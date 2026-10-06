@@ -13,42 +13,68 @@ type Table = "budgets" | "budget_categories" | "transactions" | "savings_goals" 
 
 /**
  * Cloud storage. Writes are diff-based (only changed rows are sent).
- * A local cache of the last known state lets the app open offline.
+ * Every change is cached locally first, so the app opens offline and changes made offline
+ * are pushed later (see the sync logic in hooks/use-app.tsx).
  */
 export class SupabaseRepository implements BudgetRepository {
   readonly kind = "supabase" as const;
 
   constructor(private readonly client: SupabaseClient, private readonly userId: string) {}
 
+  /** Server state only. Throws when offline. */
+  async fetchRemote(): Promise<AppData> {
+    const [budgets, categories, transactions, goals, savingsTx, prefs] = await Promise.all([
+      this.selectAll<m.BudgetRow>("budgets"),
+      this.selectAll<m.CategoryRow>("budget_categories"),
+      this.selectAll<m.TransactionRow>("transactions"),
+      this.selectAll<m.GoalRow>("savings_goals"),
+      this.selectAll<m.SavingsTransactionRow>("savings_transactions"),
+      this.client.from("user_preferences").select("*").eq("user_id", this.userId).maybeSingle(),
+    ]);
+    if (prefs.error) throw new Error(prefs.error.message);
+    return parseAppData({
+      budgets: budgets.map(m.budgetFromRow),
+      categories: categories.map(m.categoryFromRow),
+      transactions: transactions.map(m.transactionFromRow),
+      savingsGoals: goals.map(m.goalFromRow),
+      savingsTransactions: savingsTx.map(m.savingsTxFromRow),
+      preferences: prefs.data ? m.preferencesFromRow(prefs.data as m.PreferencesRow) : undefined,
+    });
+  }
+
   async load(): Promise<AppData> {
+    return (await this.loadForSync()).local;
+  }
+
+  /**
+   * `local` is what the app should show; `synced` is the last state known to be on the server (null if unknown).
+   * Unsynced local changes (saved while offline) win over the server copy and get pushed on the next flush.
+   */
+  async loadForSync(): Promise<{ local: AppData; synced: AppData | null }> {
+    const cached = this.readCache();
+    const pending = this.hasPendingChanges();
+    let remote: AppData | null = null;
     try {
-      const [budgets, categories, transactions, goals, savingsTx, prefs] = await Promise.all([
-        this.selectAll<m.BudgetRow>("budgets"),
-        this.selectAll<m.CategoryRow>("budget_categories"),
-        this.selectAll<m.TransactionRow>("transactions"),
-        this.selectAll<m.GoalRow>("savings_goals"),
-        this.selectAll<m.SavingsTransactionRow>("savings_transactions"),
-        this.client.from("user_preferences").select("*").eq("user_id", this.userId).maybeSingle(),
-      ]);
-      if (prefs.error) throw new Error(prefs.error.message);
-      const data = parseAppData({
-        budgets: budgets.map(m.budgetFromRow),
-        categories: categories.map(m.categoryFromRow),
-        transactions: transactions.map(m.transactionFromRow),
-        savingsGoals: goals.map(m.goalFromRow),
-        savingsTransactions: savingsTx.map(m.savingsTxFromRow),
-        preferences: prefs.data ? m.preferencesFromRow(prefs.data as m.PreferencesRow) : undefined,
-      });
-      this.writeCache(data);
-      return data;
+      remote = await this.fetchRemote();
     } catch (error) {
-      const cached = this.readCache();
-      if (cached) return cached;
-      throw error;
+      if (!cached) throw error;
     }
+    if (pending && cached) return { local: cached, synced: remote };
+    if (remote) {
+      this.writeCache(remote);
+      return { local: remote, synced: remote };
+    }
+    return { local: cached!, synced: null };
+  }
+
+  hasPendingChanges(): boolean {
+    return safeGet(STORAGE_KEYS.cloudPending(this.userId)) !== null;
   }
 
   async persist(prev: AppData, next: AppData): Promise<void> {
+    // Save locally first: if the network fails, nothing typed by the user is lost.
+    this.writeCache(next);
+    this.setPending(true);
     const c = diffData(prev, next);
     const u = this.userId;
     // Parents first for inserts, children first for deletes.
@@ -63,7 +89,7 @@ export class SupabaseRepository implements BudgetRepository {
     await this.remove("budgets", c.budgets.deletes);
     await this.remove("savings_goals", c.savingsGoals.deletes);
     if (c.preferencesChanged) await this.savePreferences(next);
-    this.writeCache(next);
+    this.setPending(false);
   }
 
   /** Used by guest → account migration and imports. Deleting parents cascades to children. */
@@ -80,10 +106,21 @@ export class SupabaseRepository implements BudgetRepository {
     await this.upsert("savings_transactions", data.savingsTransactions.map((s) => m.savingsTxToRow(s, u)));
     await this.savePreferences(data);
     this.writeCache(data);
+    this.setPending(false);
   }
 
   async clear(): Promise<void> {
     safeRemove(STORAGE_KEYS.cloudCache(this.userId));
+    safeRemove(STORAGE_KEYS.cloudPending(this.userId));
+  }
+
+  private setPending(pending: boolean): void {
+    try {
+      if (pending) safeSet(STORAGE_KEYS.cloudPending(this.userId), new Date().toISOString());
+      else safeRemove(STORAGE_KEYS.cloudPending(this.userId));
+    } catch {
+      /* best effort */
+    }
   }
 
   private async selectAll<T>(table: Table): Promise<T[]> {

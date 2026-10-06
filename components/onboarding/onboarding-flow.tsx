@@ -14,7 +14,8 @@ import { createMonthBudget, createSavingsGoal } from "@/lib/domain/actions";
 import { createEmptyData } from "@/lib/domain/factories";
 import { parseMoneyInput } from "@/lib/money";
 import { cn, createId, errorMessage } from "@/lib/utils";
-import type { AppData, CategoryColor, CategoryDraft, CategoryType } from "@/types";
+import { localizeName, type Messages } from "@/lib/i18n";
+import type { AppData, CategoryColor, CategoryDraft, CategoryType, LanguageCode } from "@/types";
 
 interface DraftItem {
   key: string;
@@ -27,12 +28,12 @@ interface DraftItem {
   amount: string;
 }
 
-const initialItems = (): DraftItem[] =>
-  ONBOARDING_SUGGESTIONS.map((s) => ({ ...s, key: createId(), selected: true, amount: "" }));
+const initialItems = (t: Messages): DraftItem[] =>
+  ONBOARDING_SUGGESTIONS.map((s) => ({ ...s, name: localizeName(s.name, t), key: createId(), selected: true, amount: "" }));
 
 /** Builds the guest's first data set: one month, selected categories, and a goal per savings category. */
-function buildInitialData(amount: number, items: DraftItem[]): AppData {
-  let data = createEmptyData();
+function buildInitialData(amount: number, items: DraftItem[], language: LanguageCode): AppData {
+  let data = createEmptyData(language);
   const drafts: CategoryDraft[] = [];
   for (const item of items) {
     const draft: CategoryDraft = {
@@ -59,11 +60,11 @@ export function OnboardingFlow() {
   const t = useT();
   const money = useMoney();
   const router = useRouter();
-  const { startGuest } = useApp();
+  const { startGuest, data: appData } = useApp();
   const [step, setStep] = useState<1 | 2>(1);
   const [amountInput, setAmountInput] = useState("");
   const [amountError, setAmountError] = useState<string | null>(null);
-  const [items, setItems] = useState<DraftItem[]>(initialItems);
+  const [items, setItems] = useState<DraftItem[]>(() => initialItems(t));
   const [customName, setCustomName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -102,7 +103,7 @@ export function OnboardingFlow() {
     setError(null);
     setBusy(true);
     try {
-      await startGuest(buildInitialData(amount, selected));
+      await startGuest(buildInitialData(amount, selected, appData.preferences.language));
       router.replace("/");
     } catch (e) {
       setError(errorMessage(e));

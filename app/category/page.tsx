@@ -17,6 +17,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { COLOR_STYLES } from "@/constants/categories";
 import { useApp, useDateLocale, useMoney, useT } from "@/hooks/use-app";
 import { useMonthView } from "@/hooks/use-month-view";
+import { isSpendingAheadOfPace } from "@/lib/calculations/budget";
 import { formatMonthLabel } from "@/lib/dates";
 import { deleteCategory } from "@/lib/domain/actions";
 import { getBudgetKey } from "@/lib/domain/selectors";
@@ -66,6 +67,7 @@ function CategoryDetailContent({ category, budget }: { category: BudgetCategory;
   if (!view || !stats) return null;
 
   const over = stats.status === "over";
+  const ahead = category.type === "variable" && isSpendingAheadOfPace(stats.spent, category.assigned, view.monthProgress);
   const isSavings = category.type === "savings";
   const barClass = over ? "bg-danger" : stats.status === "near-limit" ? "bg-warning" : COLOR_STYLES[category.color].bar;
 
@@ -134,8 +136,12 @@ function CategoryDetailContent({ category, budget }: { category: BudgetCategory;
               className="mt-4"
               label={t.category.usedPct(Math.round(stats.ratio * 100), category.name)}
             />
-            <p className={cn("mt-2 text-sm", over ? "text-danger" : "text-muted-foreground")}>
-              {over ? t.category.over(money(-stats.remaining)) : t.category.usedPct(Math.round(stats.ratio * 100), category.name)}
+            <p className={cn("mt-2 text-sm", over ? "text-danger" : ahead ? "font-medium text-warning" : "text-muted-foreground")}>
+              {over
+                ? t.category.over(money(-stats.remaining))
+                : ahead
+                  ? t.category.pace(Math.round(stats.ratio * 100), Math.round(view.monthProgress * 100))
+                  : t.category.usedPct(Math.round(stats.ratio * 100), category.name)}
             </p>
           </>
         )}

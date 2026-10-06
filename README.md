@@ -10,7 +10,7 @@ PocketFlow est une application web (PWA) de budget mensuel pour étudiants et je
 
 - Pas de connexion bancaire, pas de publicité, pas d'IA.
 - Utilisable **sans compte** (données locales, hors ligne) ou **avec un compte** (synchronisation Supabase multi-appareils).
-- Interface en anglais, structure prête pour la traduction.
+- Interface en **français et anglais** : la langue du téléphone est choisie automatiquement, modifiable dans Réglages.
 
 ---
 
@@ -56,7 +56,11 @@ Répartir plus que le budget affiche un avertissement clair (« €50 over budge
 
 **Historique.** Tous les mois classés par année, avec le détail complet de chaque mois (catégories, transactions). Les mois passés sont immuables : modifier octobre ne change jamais septembre.
 
-**Indicateurs.** Discrets et peu nombreux : « €243 left for 18 days · About €13.50/day available », « €150 still needs to be assigned », comparaison avec le mois précédent.
+**Indicateurs.** Discrets et peu nombreux : « €243 left for 18 days · About €13.50/day available », « €150 still needs to be assigned », comparaison avec le mois précédent. Une catégorie variable consommée nettement plus vite que le mois n'avance (15 points d'écart ou plus) affiche « 72% used · only 55% of the month has passed ».
+
+**Chiffres du mois sans ambiguïté.** La carte principale montre en grand le *reste à répartir*, juste en dessous « €950 of €1,000 assigned », puis une ligne Budget · Spent · *Left to spend* (budget − dépensé − épargne).
+
+**Récap mensuel.** Dans l'historique, chaque mois indique la catégorie la plus dépensée et l'écart avec le mois précédent.
 
 **Réglages.** Compte, devise (EUR, USD, GBP, CHF, CAD), thème (système/clair/sombre), langue (préparée), export JSON, export CSV des dépenses, import JSON, réinitialisation, déconnexion, suppression du compte. En mode invité : créer un compte, transférer les données locales, effacer les données locales.
 
@@ -101,6 +105,7 @@ cp .env.example .env.local   # optionnel, voir ci-dessous
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Non* | URL du projet Supabase (`https://xxxx.supabase.co`) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Non* | Clé **anon public** (ou clé **publishable** `sb_publishable_…`) |
+| `NEXT_PUBLIC_SITE_URL` | Non | URL publique (ex. `https://pocketflow.app`) pour les liens de partage. Inutile sur Vercel sans domaine personnalisé : l'URL est détectée automatiquement. |
 
 \* Sans ces variables, l'app fonctionne entièrement en mode invité et démo ; les boutons de compte expliquent que les comptes ne sont pas configurés.
 
@@ -126,7 +131,7 @@ cp .env.example .env.local   # optionnel, voir ci-dessous
    - Pour tester rapidement en local, vous pouvez le désactiver.
 5. **URLs** : *Authentication → URL Configuration*
    - **Site URL** : `http://localhost:3000` en local, puis votre URL Vercel en production (ex. `https://pocketflow.vercel.app`).
-   - **Redirect URLs** : ajoutez `http://localhost:3000/**` et `https://<votre-domaine>/**`.
+   - **Redirect URLs** : ajoutez `http://localhost:3000/**` et `https://<votre-domaine>/**`. Le lien « mot de passe oublié » redirige vers `/reset-password`, couvert par ces règles.
 
 ---
 
@@ -166,6 +171,9 @@ Les tests (`tests/`) couvrent la logique métier centrale :
 - épargne (solde, total, dépôts/retraits, transfert en fin de mois, historique par mois) ;
 - parsing des montants (« 32,50 », « 1.000,50 »…), formatage ;
 - diff de persistance, import/export ;
+- synchronisation hors ligne (faux backend Supabase coupé puis rétabli) ;
+- rythme de dépense, reste à dépenser, récap mensuel ;
+- traduction française complète (toutes les clés), formats français (1 000 €, Septembre 2026) ;
 - données de démo conformes au cahier des charges.
 
 ---
@@ -214,9 +222,13 @@ Le mode actif est mémorisé dans `pocketflow:mode`.
 
 Dans tous les cas, la copie locale **n'est jamais supprimée automatiquement**. L'utilisateur peut l'effacer plus tard via *Settings → Clear local data* (avec confirmation), ou relancer le transfert via *Import data from this device*.
 
+**Mot de passe oublié.** Sur l'écran de connexion, *Forgot password?* envoie un e-mail Supabase. Le lien ouvre `/reset-password`, où l'utilisateur choisit un nouveau mot de passe ; il est ensuite connecté directement.
+
+**Hors ligne en mode compte.** Chaque modification est d'abord enregistrée sur l'appareil, puis envoyée à Supabase. Sans réseau, un bandeau discret l'indique ; les modifications sont renvoyées automatiquement au retour de la connexion (et à chaque réouverture de l'app). Se déconnecter avec des modifications non envoyées demande une confirmation.
+
 **Architecture de persistance.**
 - Toutes les modifications passent par des **actions pures** (`lib/domain/actions.ts`) qui renvoient un nouvel état en conservant les références des éléments inchangés.
-- Le provider (`hooks/use-app.tsx`) applique l'état immédiatement (UI optimiste), puis transmet l'ancien et le nouvel état au **repository** via une file d'écriture sérialisée.
+- Le provider (`hooks/use-app.tsx`) applique l'état immédiatement (UI optimiste), puis envoie au **repository** la différence entre le dernier état enregistré et l'état actuel, via une file d'écriture sérialisée. Plusieurs modifications rapides sont regroupées ; en cas d'échec, l'envoi est retenté (5 s, 15 s, 30 s, 1 min, 2 min, puis au retour du réseau).
 - `LocalRepository` écrit le JSON complet dans localStorage.
 - `SupabaseRepository` calcule un diff et n'envoie que les lignes modifiées, en respectant l'ordre des dépendances (parents d'abord, suppressions enfants d'abord), avec pagination et envoi par lots.
 - Les deux repositories implémentent la même interface (`lib/storage/repository.ts`) et manipulent les mêmes types.
@@ -276,7 +288,7 @@ lib/
   domain/                 Actions, sélecteurs, factories, démo, diff
   storage/                Repositories local / Supabase, validation du schéma, clés
   supabase/               Client + mappers ligne ↔ modèle
-  i18n/                   Dictionnaire anglais + registre des langues
+  i18n/                   Dictionnaires anglais et français, détection de la langue
   money.ts  dates.ts  export.ts  utils.ts
 constants/                Devises, catégories suggérées, couleurs, emojis
 config/app.ts             Nom de l'app, couleurs du thème, devise par défaut
@@ -290,6 +302,13 @@ tests/                    Tests Vitest
 **Pourquoi `?id=` et `?y=&m=` plutôt que des segments dynamiques ?** Toutes les routes restent statiques, donc le service worker peut les mettre en cache et elles fonctionnent hors ligne.
 
 ---
+
+## Référencement et partage
+
+- `/welcome` est rendue côté serveur : un robot ou un aperçu de lien voit le vrai contenu, pas un écran de chargement.
+- Titre, description, URL canonique, Open Graph et Twitter Card sont définis dans `config/site.ts`.
+- `robots.txt` et `sitemap.xml` sont générés automatiquement ; seules les pages publiques sont indexées.
+- Pour tester l'aperçu après déploiement : [opengraph.xyz](https://www.opengraph.xyz).
 
 ## PWA et hors ligne
 
@@ -316,10 +335,12 @@ tests/                    Tests Vitest
   1. l'ajouter au type `CurrencyCode` dans `types/index.ts` ;
   2. ajouter une entrée dans `constants/currencies.ts` ;
   3. l'ajouter à la contrainte `check` de `user_preferences.currency` dans `schema.sql`.
-- **Ajouter une langue** :
-  1. créer `lib/i18n/fr.ts` typé `Messages` (même structure que `en.ts`) ;
-  2. étendre `LanguageCode` ;
-  3. l'enregistrer dans `lib/i18n/index.ts` et passer `available: true`.
+- **Ajouter une langue** (ex. espagnol) :
+  1. copier `lib/i18n/fr.ts` en `es.ts` et traduire (TypeScript signale toute clé manquante) ;
+  2. ajouter `"es"` au type `LanguageCode` dans `types/index.ts` ;
+  3. l'enregistrer dans `lib/i18n/index.ts` (dictionnaire, `LANGUAGES`, `DATE_LOCALES`) ;
+  4. l'ajouter à la contrainte `language` de `user_preferences` dans `schema.sql`.
+- **Textes de la page d'accueil et du partage** : `config/site.ts` (titre, description, tagline) et `public/opengraph-image.png` (1200×630).
 
 ---
 

@@ -10,4 +10,6 @@ export interface BudgetRepository {
   persist(prev: AppData, next: AppData): Promise<void>;
   replaceAll(data: AppData): Promise<void>;
   clear(): Promise<void>;
+  /** Cloud only: fetch the server state, bypassing any cache. */
+  fetchRemote?(): Promise<AppData>;
 }

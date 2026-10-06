@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { MonthRecap } from "@/components/budget/month-recap";
 import { MonthEndCard, MonthStats } from "@/components/budget/month-summary-card";
 import { ExpenseList } from "@/components/expenses/expense-list";
 import { useExpenseSheet } from "@/components/expenses/expense-sheet-provider";
@@ -84,6 +85,7 @@ function MonthDetailContent({ monthKey }: { monthKey: MonthKey }) {
         }
       />
       <MonthStats view={view} />
+      <MonthRecap view={view} className="px-1" />
       <MonthEndCard view={view} />
       <CategoryBreakdown view={view} />
       <section aria-labelledby="month-transactions">

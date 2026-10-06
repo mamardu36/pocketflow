@@ -36,7 +36,9 @@ export function MonthlyBudgetCard({ view, onEditBudget }: MonthlyBudgetCardProps
           </>
         ) : summary.unassigned === 0 && summary.budget > 0 ? (
           t.dashboard.allAssigned
-        ) : null}
+        ) : (
+          <span className="tabular">{t.dashboard.assignedOf(money(summary.assigned), money(summary.budget))}</span>
+        )}
       </p>
 
       <div
@@ -71,12 +73,14 @@ export function MonthlyBudgetCard({ view, onEditBudget }: MonthlyBudgetCardProps
           </dd>
         </div>
         <div>
-          <dt className="text-xs text-hero-muted">{t.dashboard.assigned}</dt>
-          <dd className="tabular mt-0.5 font-semibold">{money(summary.assigned)}</dd>
-        </div>
-        <div>
           <dt className="text-xs text-hero-muted">{t.dashboard.spent}</dt>
           <dd className="tabular mt-0.5 font-semibold">{money(summary.spent)}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-hero-muted">{t.dashboard.leftToSpend}</dt>
+          <dd className={cn("tabular mt-0.5 font-semibold", summary.leftToSpend < 0 && "text-[hsl(var(--danger))]")}>
+            {money(summary.leftToSpend)}
+          </dd>
         </div>
       </dl>
     </section>

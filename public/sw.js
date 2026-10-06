@@ -6,9 +6,9 @@
  * - Cross-origin requests (Supabase) are never cached.
  * Bump VERSION to force old caches to be dropped.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = `pocketflow-${VERSION}`;
-const ROUTES = ["/", "/welcome", "/onboarding", "/auth", "/expenses", "/savings", "/history", "/settings", "/category", "/month"];
+const ROUTES = ["/", "/welcome", "/onboarding", "/auth", "/reset-password", "/expenses", "/savings", "/history", "/settings", "/category", "/month"];
 const ASSETS = ["/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png"];
 
 /** Caches a page and the hashed JS/CSS it references, so every screen works offline after install. */

@@ -58,6 +58,7 @@ export function CategorySection({ type, view, onAdd, onEditSavings }: CategorySe
                 goalName={goal?.name ?? null}
                 goalBalance={goal ? calculateGoalBalance(goal, data) : null}
                 onEditSavings={onEditSavings}
+                monthProgress={view.monthProgress}
               />
             );
           })}

@@ -1,13 +1,19 @@
 import { CURRENCIES } from "@/constants/currencies";
-import type { Cents, CurrencyCode } from "@/types";
+import type { Cents, CurrencyCode, LanguageCode } from "@/types";
 
 const formatterCache = new Map<string, Intl.NumberFormat>();
 
-function getFormatter(currency: CurrencyCode, decimals: boolean): Intl.NumberFormat {
-  const key = `${currency}:${decimals}`;
+/** French UI → French number style (1 000,50 €); otherwise the currency's own locale (€1,000.50). */
+export function moneyLocale(currency: CurrencyCode, language: LanguageCode = "en"): string {
+  if (language === "fr") return currency === "CHF" ? "fr-CH" : currency === "CAD" ? "fr-CA" : "fr-FR";
+  return CURRENCIES[currency].locale;
+}
+
+function getFormatter(currency: CurrencyCode, decimals: boolean, language: LanguageCode): Intl.NumberFormat {
+  const key = `${currency}:${decimals}:${language}`;
   let formatter = formatterCache.get(key);
   if (!formatter) {
-    formatter = new Intl.NumberFormat(CURRENCIES[currency].locale, {
+    formatter = new Intl.NumberFormat(moneyLocale(currency, language), {
       style: "currency",
       currency,
       minimumFractionDigits: decimals ? 2 : 0,
@@ -21,12 +27,14 @@ function getFormatter(currency: CurrencyCode, decimals: boolean): Intl.NumberFor
 export interface FormatMoneyOptions {
   /** Prefix positive values with "+". */
   signed?: boolean;
+  /** UI language; changes separators and symbol position. Defaults to English. */
+  language?: LanguageCode;
 }
 
 /** €1,000 for whole amounts, €167.50 otherwise. */
 export function formatMoney(cents: Cents, currency: CurrencyCode, options: FormatMoneyOptions = {}): string {
   const abs = Math.abs(Math.round(cents));
-  const text = getFormatter(currency, abs % 100 !== 0).format(abs / 100);
+  const text = getFormatter(currency, abs % 100 !== 0, options.language ?? "en").format(abs / 100);
   if (cents < 0) return `−${text}`;
   if (options.signed && cents > 0) return `+${text}`;
   return text;
@@ -39,7 +47,7 @@ const MAX_CENTS = 99_999_999_99; // ~1 billion, protects against absurd input
  * Accepts "32.50", "32,50", "1,000.50", "1.000,50", "€ 12". Returns null if invalid.
  */
 export function parseMoneyInput(input: string): Cents | null {
-  let s = input.trim().replace(/[\s\u00a0'’]/g, "").replace(/^(€|\$|£|CHF|CAD|EUR|USD|GBP)/i, "").replace(/(€|\$|£)$/, "");
+  let s = input.trim().replace(/[\s\u00a0\u202f'’]/g, "").replace(/^(€|\$|£|CHF|CAD|EUR|USD|GBP)/i, "").replace(/(€|\$|£)$/, "");
   if (!s) return null;
 
   const lastComma = s.lastIndexOf(",");

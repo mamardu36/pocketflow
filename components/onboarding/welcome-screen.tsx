@@ -1,12 +1,13 @@
 "use client";
 
-import { FlaskConical, Wallet } from "lucide-react";
+import { Check, FlaskConical, Wallet } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { APP_CONFIG } from "@/config/app";
 import { useApp, useMoney, useT } from "@/hooks/use-app";
+import { localizeName } from "@/lib/i18n";
 import { STORAGE_KEYS, safeGet } from "@/lib/storage/keys";
 
 export function WelcomeScreen() {
@@ -41,10 +42,18 @@ export function WelcomeScreen() {
         {APP_CONFIG.name}
       </div>
 
-      <div className="flex flex-1 flex-col justify-center py-10 animate-fade-in">
+      <div className="flex flex-1 flex-col justify-center py-8 animate-fade-in">
         <AllocationPreview />
-        <h1 className="mt-10 text-4xl font-semibold leading-tight tracking-tight">{t.welcome.title}</h1>
-        <p className="mt-3 text-lg text-muted-foreground">{t.welcome.subtitle}</p>
+        <h1 className="mt-8 text-4xl font-semibold leading-tight tracking-tight">{t.welcome.title}</h1>
+        <p className="mt-3 text-lg text-muted-foreground">{t.welcome.tagline}</p>
+        <ul className="mt-5 space-y-2 text-[15px]">
+          {t.welcome.features.map((feature) => (
+            <li key={feature} className="flex items-start gap-2.5">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="space-y-2.5">
@@ -90,9 +99,9 @@ function AllocationPreview() {
         ))}
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2 text-xs text-hero-muted">
-        <span>🏠 Rent</span>
-        <span>🛒 Groceries</span>
-        <span>🐷 Savings</span>
+        <span>🏠 {localizeName("Rent", t)}</span>
+        <span>🛒 {localizeName("Groceries", t)}</span>
+        <span>🐷 {localizeName("Savings", t)}</span>
       </div>
     </div>
   );

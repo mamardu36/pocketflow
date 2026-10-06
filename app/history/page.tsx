@@ -4,6 +4,7 @@ import { CalendarClock, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 import { PageHeader } from "@/components/navigation/page-header";
+import { MonthRecap } from "@/components/budget/month-recap";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useApp, useDateLocale, useMoney, useT } from "@/hooks/use-app";
 import { formatMonthLabel, getCurrentMonthKey, isSameMonth } from "@/lib/dates";
@@ -79,6 +80,7 @@ function MonthRow({ view }: { view: MonthView }) {
             </div>
           ))}
         </dl>
+        <MonthRecap view={view} className="mt-2.5 border-t border-border pt-2.5" />
       </div>
       <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
     </Link>

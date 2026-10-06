@@ -1,16 +1,16 @@
 import { APP_CONFIG } from "@/config/app";
 import { createId, nowISO } from "@/lib/utils";
 import type {
-  AppData, BudgetCategory, CategoryDraft, MonthKey, MonthlyBudget, SavingsGoal, SavingsGoalDraft,
+  AppData, BudgetCategory, CategoryDraft, LanguageCode, MonthKey, MonthlyBudget, SavingsGoal, SavingsGoalDraft,
   SavingsTransaction, Transaction, TransactionDraft, UserPreferences,
 } from "@/types";
 
-export function createDefaultPreferences(): UserPreferences {
-  return { currency: APP_CONFIG.defaultCurrency, theme: "system", language: APP_CONFIG.defaultLanguage, updatedAt: nowISO() };
+export function createDefaultPreferences(language: LanguageCode = APP_CONFIG.defaultLanguage): UserPreferences {
+  return { currency: APP_CONFIG.defaultCurrency, theme: "system", language, updatedAt: nowISO() };
 }
 
-export function createEmptyData(): AppData {
-  return { version: 1, budgets: [], categories: [], transactions: [], savingsGoals: [], savingsTransactions: [], preferences: createDefaultPreferences() };
+export function createEmptyData(language?: LanguageCode): AppData {
+  return { version: 1, budgets: [], categories: [], transactions: [], savingsGoals: [], savingsTransactions: [], preferences: createDefaultPreferences(language) };
 }
 
 export function newBudget(key: MonthKey, amount: number): MonthlyBudget {

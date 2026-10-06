@@ -7,10 +7,13 @@ import { ExpenseSheetProvider } from "@/components/expenses/expense-sheet-provid
 import { BottomNavigation } from "@/components/navigation/bottom-navigation";
 import { DemoBanner } from "@/components/navigation/demo-banner";
 import { DesktopSidebar } from "@/components/navigation/desktop-sidebar";
+import { SyncBanner } from "@/components/navigation/sync-banner";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { useApp } from "@/hooks/use-app";
 
-const STANDALONE_ROUTES = ["/welcome", "/onboarding", "/auth"];
+const STANDALONE_ROUTES = ["/welcome", "/onboarding", "/auth", "/reset-password"];
+/** Public pages rendered on the server too, so crawlers and link previews see real content. */
+const PUBLIC_ROUTES = ["/welcome"];
 
 function LoadingScreen() {
   return (
@@ -27,6 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const standalone = STANDALONE_ROUTES.includes(pathname);
+  const isPublic = PUBLIC_ROUTES.includes(pathname);
 
   const redirect =
     status !== "ready" ? null
@@ -42,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <ConfirmProvider>
       <ExpenseSheetProvider>
-        {status !== "ready" || redirect ? (
+        {(status !== "ready" && !isPublic) || redirect ? (
           <LoadingScreen />
         ) : standalone ? (
           <main className="min-h-dvh">{children}</main>
@@ -51,6 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <DesktopSidebar />
             <main className="mx-auto w-full max-w-2xl px-4 pb-28 pt-[max(1rem,env(safe-area-inset-top))] md:ml-64 md:max-w-3xl md:px-10 md:pb-12 md:pt-8 lg:ml-[max(16rem,calc((100vw-48rem)/2))]">
               <DemoBanner />
+              <SyncBanner />
               {children}
             </main>
             <BottomNavigation />

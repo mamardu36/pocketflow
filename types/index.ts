@@ -4,7 +4,7 @@ export type Cents = number;
 export type CategoryType = "fixed" | "variable" | "savings";
 export type CurrencyCode = "EUR" | "USD" | "GBP" | "CHF" | "CAD";
 export type ThemePreference = "system" | "light" | "dark";
-export type LanguageCode = "en";
+export type LanguageCode = "en" | "fr";
 export type AppMode = "guest" | "demo" | "cloud";
 export type CategoryColor = "slate" | "sky" | "emerald" | "amber" | "rose" | "violet" | "teal" | "orange";
 

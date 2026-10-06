@@ -5,6 +5,7 @@ import { CategoryIcon } from "@/components/ui/category-icon";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { COLOR_STYLES } from "@/constants/categories";
 import { useMoney, useT } from "@/hooks/use-app";
+import { isSpendingAheadOfPace } from "@/lib/calculations/budget";
 import type { CategoryStats } from "@/lib/domain/selectors";
 import { cn } from "@/lib/utils";
 import type { BudgetCategory } from "@/types";
@@ -14,13 +15,15 @@ interface CategoryCardProps {
   stats: CategoryStats;
   goalName?: string | null;
   goalBalance?: number | null;
+  /** Share of the month elapsed, to flag categories spent faster than the calendar. */
+  monthProgress?: number;
   onEditSavings?: (category: BudgetCategory) => void;
 }
 
 const cardClass =
   "block w-full rounded-3xl border border-border bg-card p-4 text-left shadow-soft transition hover:border-foreground/15 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-export function CategoryCard({ category, stats, goalName, goalBalance, onEditSavings }: CategoryCardProps) {
+export function CategoryCard({ category, stats, goalName, goalBalance, onEditSavings, monthProgress = 0 }: CategoryCardProps) {
   const t = useT();
   const money = useMoney();
   const over = stats.status === "over";
@@ -79,7 +82,13 @@ export function CategoryCard({ category, stats, goalName, goalBalance, onEditSav
         </div>
       </div>
       <ProgressBar value={stats.ratio} barClassName={barClass} className="mt-3" label={t.category.usedPct(Math.round(stats.ratio * 100), category.name)} />
-      <p className="tabular mt-2 text-xs text-muted-foreground">{t.category.spent(money(stats.spent))}</p>
+      {isSpendingAheadOfPace(stats.spent, category.assigned, monthProgress) ? (
+        <p className="tabular mt-2 text-xs font-medium text-warning">
+          {t.category.pace(Math.round(stats.ratio * 100), Math.round(monthProgress * 100))}
+        </p>
+      ) : (
+        <p className="tabular mt-2 text-xs text-muted-foreground">{t.category.spent(money(stats.spent))}</p>
+      )}
     </Link>
   );
 }

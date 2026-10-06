@@ -20,6 +20,7 @@ import { CATEGORY_TYPES, ONBOARDING_SUGGESTIONS } from "@/constants/categories";
 import { useApp, useT } from "@/hooks/use-app";
 import { useMonthView } from "@/hooks/use-month-view";
 import { addSuggestedCategories } from "@/lib/domain/actions";
+import { localizeName } from "@/lib/i18n";
 import type { BudgetCategory, CategoryType } from "@/types";
 
 export default function DashboardPage() {
@@ -61,7 +62,9 @@ export default function DashboardPage() {
               description={t.dashboard.noCategoriesBody}
               action={
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button onClick={() => commit((d) => addSuggestedCategories(d, view.budget.id, ONBOARDING_SUGGESTIONS))}>
+                  <Button onClick={() => commit((d) =>
+                      addSuggestedCategories(d, view.budget.id, ONBOARDING_SUGGESTIONS.map((s) => ({ ...s, name: localizeName(s.name, t) }))),
+                    )}>
                     {t.dashboard.suggested}
                   </Button>
                   <Button variant="outline" onClick={() => setCategorySheet({ category: null, type: "variable" })}>

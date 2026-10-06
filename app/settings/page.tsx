@@ -20,7 +20,7 @@ import { buildJsonExport, buildTransactionsCsv, downloadFile, parseImportFile } 
 import { LANGUAGES } from "@/lib/i18n";
 import { LocalRepository } from "@/lib/storage/local-repository";
 import { cn, errorMessage } from "@/lib/utils";
-import type { CurrencyCode, ThemePreference } from "@/types";
+import type { CurrencyCode, LanguageCode, ThemePreference } from "@/types";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -167,11 +167,22 @@ export default function SettingsPage() {
     });
   };
 
-  const signOut = () =>
-    run(async () => {
+  const signOut = async () => {
+    if (app.syncPending) {
+      const ok = await confirm({
+        title: t.sync.signOutTitle,
+        description: t.sync.signOutBody,
+        confirmLabel: t.sync.signOutAnyway,
+        cancelLabel: t.common.cancel,
+        destructive: true,
+      });
+      if (!ok) return;
+    }
+    await run(async () => {
       await app.signOut();
       router.replace("/welcome");
     });
+  };
 
   const deleteAccount = async () => {
     const ok = await confirm({
@@ -198,7 +209,11 @@ export default function SettingsPage() {
       <Section title={t.settings.account}>
         {mode === "cloud" && user && (
           <>
-            <InfoRow icon={<UserRound className="h-5 w-5" />} title={t.settings.signedInAs(user.email)} hint={t.settings.syncHint} />
+            <InfoRow
+              icon={<UserRound className="h-5 w-5" />}
+              title={t.settings.signedInAs(user.email)}
+              hint={app.syncPending ? t.sync.pending : t.settings.syncHint}
+            />
             {localGuestData && <Row icon={<Smartphone className="h-4 w-4" />} label={t.settings.importLocal} onClick={app.openMigration} />}
             <Row icon={<LogOut className="h-4 w-4" />} label={t.settings.signOut} onClick={signOut} disabled={busy} />
             <Row icon={<Trash2 className="h-4 w-4" />} label={t.settings.deleteAccount} onClick={deleteAccount} danger disabled={busy} />
@@ -265,10 +280,14 @@ export default function SettingsPage() {
               options={(["system", "light", "dark"] as const).map((v) => ({ value: v, label: t.settings.themes[v] }))}
             />
           </div>
-          <Field label={t.settings.language} htmlFor="pref-language" hint={t.settings.languageSoon}>
-            <Select id="pref-language" value={data.preferences.language} onChange={() => undefined}>
+          <Field label={t.settings.language} htmlFor="pref-language" hint={t.settings.languageHint}>
+            <Select
+              id="pref-language"
+              value={data.preferences.language}
+              onChange={(e) => commit((d) => updatePreferences(d, { language: e.target.value as LanguageCode }))}
+            >
               {LANGUAGES.map((l) => (
-                <option key={l.code} value={l.code} disabled={!l.available}>
+                <option key={l.code} value={l.code}>
                   {l.label}
                 </option>
               ))}

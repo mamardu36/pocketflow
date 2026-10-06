@@ -2,7 +2,8 @@ import { createMonthBudget } from "@/lib/domain/actions";
 import { createEmptyData, newSavingsGoal, newTransaction } from "@/lib/domain/factories";
 import { findBudget } from "@/lib/domain/selectors";
 import { addMonths, daysInMonth, getCurrentMonthKey } from "@/lib/dates";
-import type { AppData, CategoryDraft, MonthKey } from "@/types";
+import { getMessages } from "@/lib/i18n";
+import type { AppData, CategoryDraft, LanguageCode, MonthKey } from "@/types";
 
 type Spend = [category: string, description: string, amount: number, day: number];
 
@@ -25,8 +26,21 @@ function buildMonth(data: AppData, key: MonthKey, amount: number, categories: Ca
   };
 }
 
-/** Realistic student month: €1,000 budget, €30 left to assign. */
-export function buildDemoData(today: Date = new Date()): AppData {
+/** Realistic student month: €1,000 budget, €30 left to assign. Names follow the UI language. */
+export function buildDemoData(today: Date = new Date(), language: LanguageCode = "en"): AppData {
+  const names = getMessages(language).categoryNames;
+  const tr = (s: string) => names[s] ?? s;
+  const data = buildEnglishDemo(today);
+  return {
+    ...data,
+    preferences: { ...data.preferences, language },
+    categories: data.categories.map((c) => ({ ...c, name: tr(c.name) })),
+    savingsGoals: data.savingsGoals.map((g) => ({ ...g, name: tr(g.name) })),
+    transactions: data.transactions.map((t) => ({ ...t, description: tr(t.description) })),
+  };
+}
+
+function buildEnglishDemo(today: Date): AppData {
   const current = getCurrentMonthKey(today);
   const previous = addMonths(current, -1);
 

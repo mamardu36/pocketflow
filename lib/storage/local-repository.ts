@@ -1,4 +1,5 @@
 import { createEmptyData } from "@/lib/domain/factories";
+import { detectLanguage } from "@/lib/i18n";
 import { STORAGE_KEYS, safeGet, safeRemove, safeSet } from "@/lib/storage/keys";
 import type { BudgetRepository } from "@/lib/storage/repository";
 import { parseAppData } from "@/lib/storage/schema";
@@ -30,7 +31,7 @@ export class LocalRepository implements BudgetRepository {
   }
 
   async load(): Promise<AppData> {
-    return this.peek() ?? createEmptyData();
+    return this.peek() ?? createEmptyData(detectLanguage());
   }
 
   async persist(_prev: AppData, next: AppData): Promise<void> {

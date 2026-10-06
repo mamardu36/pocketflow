@@ -1,5 +1,6 @@
 import {
-  calculateCategorySpent, calculateDailyAllowance, calculateMonthSummary, calculateRemainingDays,
+  calculateCategorySpent, calculateDailyAllowance, calculateMonthProgress, calculateMonthSummary, calculateMonthlySpent,
+  calculateRemainingDays,
   calculateRemainingVariableMoney, calculateUsageRatio, compareSpendingToPreviousMonth, getCategoryStatus,
   type CategoryStatus, type MonthSummary, type SpendingComparison,
 } from "@/lib/calculations/budget";
@@ -64,6 +65,8 @@ export interface MonthView {
   remainingVariable: Cents;
   dailyAllowance: Cents;
   comparison: SpendingComparison | null;
+  /** 0 → 1, share of the month elapsed. */
+  monthProgress: number;
 }
 
 export function getCategoryStats(category: BudgetCategory, transactions: Transaction[]): CategoryStats {
@@ -109,5 +112,33 @@ export function buildMonthView(data: AppData, key: MonthKey, today: Date = new D
     remainingVariable,
     dailyAllowance: calculateDailyAllowance(remainingVariable, remainingDays),
     comparison,
+    monthProgress: calculateMonthProgress(key, today),
   };
+}
+
+export interface MonthRecap {
+  /** Category with the highest spending (fixed or variable). */
+  top: { category: BudgetCategory; spent: Cents } | null;
+  /** Full-month spending vs. the previous month; only for completed months. */
+  previous: { key: MonthKey; difference: Cents } | null;
+}
+
+export function buildMonthRecap(data: AppData, view: MonthView): MonthRecap {
+  let top: MonthRecap["top"] = null;
+  for (const category of view.categories) {
+    if (category.type === "savings") continue;
+    const spent = view.stats.get(category.id)?.spent ?? 0;
+    if (spent > 0 && (!top || spent > top.spent)) top = { category, spent };
+  }
+
+  let previous: MonthRecap["previous"] = null;
+  if (view.isPast) {
+    const key = addMonths(view.key, -1);
+    const budget = findBudget(data, key);
+    if (budget) {
+      const prevSpent = calculateMonthlySpent(data.transactions.filter((t) => t.budgetId === budget.id));
+      previous = { key, difference: view.summary.spent - prevSpent };
+    }
+  }
+  return { top, previous };
 }

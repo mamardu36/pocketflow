@@ -4,13 +4,17 @@ import { AppShell } from "@/components/navigation/app-shell";
 import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
 import { ThemeToaster } from "@/components/theme-toaster";
 import { APP_CONFIG } from "@/config/app";
+import { OPEN_GRAPH, SEO, getSiteUrl } from "@/config/site";
 import { AppProvider } from "@/hooks/use-app";
 import { STORAGE_KEYS } from "@/lib/storage/keys";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: APP_CONFIG.name, template: `%s · ${APP_CONFIG.name}` },
-  description: APP_CONFIG.description,
+  metadataBase: new URL(getSiteUrl()),
+  title: { default: SEO.title, template: `%s · ${APP_CONFIG.name}` },
+  description: SEO.description,
+  openGraph: { ...OPEN_GRAPH, url: "/" },
+  twitter: { card: "summary_large_image", title: SEO.title, description: SEO.description, images: ["/opengraph-image.png"] },
   applicationName: APP_CONFIG.name,
   appleWebApp: { capable: true, title: APP_CONFIG.shortName, statusBarStyle: "default" },
   icons: {

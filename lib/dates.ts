@@ -69,9 +69,12 @@ export function monthKeyToString(key: MonthKey): string {
   return `${key.year}-${pad(key.month)}`;
 }
 
+/** French month and day names are lowercase; labels in this app always start with a capital. */
+const capitalize = (s: string) => s.charAt(0).toLocaleUpperCase() + s.slice(1);
+
 export function formatMonthLabel(key: MonthKey, locale = "en-GB", withYear = true): string {
-  return new Intl.DateTimeFormat(locale, { month: "long", ...(withYear ? { year: "numeric" } : {}) }).format(
-    new Date(key.year, key.month - 1, 1),
+  return capitalize(
+    new Intl.DateTimeFormat(locale, { month: "long", ...(withYear ? { year: "numeric" } : {}) }).format(new Date(key.year, key.month - 1, 1)),
   );
 }
 
@@ -80,7 +83,7 @@ export function formatShortDate(iso: string, locale = "en-GB"): string {
 }
 
 export function formatLongDate(iso: string, locale = "en-GB"): string {
-  return new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(parseISODate(iso));
+  return capitalize(new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(parseISODate(iso)));
 }
 
 /** Whole days between two local dates (b − a). */

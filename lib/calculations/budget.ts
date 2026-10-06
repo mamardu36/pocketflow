@@ -64,6 +64,27 @@ export function calculateRemainingVariableMoney(categories: readonly BudgetCateg
   return Math.max(0, calculateAssignedMoney(variable) - spent);
 }
 
+/** Share of the month elapsed, today included: 0 for future months, 1 for past months. */
+export function calculateMonthProgress(key: MonthKey, today: Date = new Date()): number {
+  const cmp = compareMonthKeys(key, getCurrentMonthKey(today));
+  if (cmp < 0) return 1;
+  if (cmp > 0) return 0;
+  return today.getDate() / daysInMonth(key);
+}
+
+/** How far ahead of the calendar a category must be before we mention it (15 points). */
+export const PACE_MARGIN = 0.15;
+
+/**
+ * True when a category is being used clearly faster than the month is passing
+ * (e.g. 72% of groceries used while 55% of the month has passed).
+ * Over-budget categories are already flagged, so they're excluded.
+ */
+export function isSpendingAheadOfPace(spent: Cents, assigned: Cents, monthProgress: number): boolean {
+  if (assigned <= 0 || spent <= 0 || spent > assigned || monthProgress <= 0 || monthProgress >= 1) return false;
+  return spent / assigned - monthProgress >= PACE_MARGIN;
+}
+
 /** remainingVariableMoney / remainingDays, rounded down to the cent. */
 export function calculateDailyAllowance(remainingVariableMoney: Cents, remainingDays: number): Cents {
   if (remainingDays <= 0 || remainingVariableMoney <= 0) return 0;
@@ -87,6 +108,8 @@ export interface MonthSummary {
   saved: Cents;
   /** budget − spent − saved, never negative. */
   unused: Cents;
+  /** budget − spent − saved: what's still available to spend this month (negative if overspent). */
+  leftToSpend: Cents;
   overspentBy: Cents;
 }
 
@@ -115,6 +138,7 @@ export function calculateMonthSummary(
     movedToSavings,
     saved,
     unused: Math.max(0, balance),
+    leftToSpend: balance,
     overspentBy: Math.max(0, -balance),
   };
 }
