@@ -12,6 +12,7 @@ export const en = {
     continue: "Continue",
     optional: "Optional",
     loading: "Loading…",
+    undo: "Undo",
   },
   nav: { home: "Home", expenses: "Expenses", savings: "Savings", history: "History", settings: "Settings", main: "Main navigation" },
   welcome: {
@@ -132,7 +133,8 @@ export const en = {
     amount: "Amount",
     category: "Category",
     description: "Description",
-    descriptionPlaceholder: "e.g. Carrefour",
+    descriptionPlaceholder: "e.g. Carrefour (optional)",
+    suggested: "Suggested from your past expenses",
     date: "Date",
     submit: "Add expense",
     update: "Save changes",

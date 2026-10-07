@@ -46,7 +46,9 @@ PocketFlow est une application web (PWA) de budget mensuel pour étudiants et je
 
 Répartir plus que le budget affiche un avertissement clair (« €50 over budget ») sans bloquer. Une catégorie dépassée affiche « €18 over budget » ; une dépense n'est jamais bloquée.
 
-**Dépenses.** Ajout rapide depuis n'importe quel écran (bottom sheet sur mobile) : montant, catégorie, description, date. Page Expenses : regroupement Today / Yesterday / date, recherche, filtre par catégorie, tri, modification, suppression, total du mois, changement de mois.
+**Dépenses.** Ajout rapide depuis n'importe quel écran (bottom sheet sur mobile) : montant, description facultative, catégorie, date. La description propose les libellés déjà utilisés, et la catégorie est choisie automatiquement d'après la dernière dépense du même nom (« Carrefour » → Courses). Un choix fait à la main n'est jamais remplacé.
+
+**Suppressions annulables.** Supprimer une dépense, une catégorie, un objectif ou une entrée d'épargne se fait d'un geste, avec un bouton *Annuler* pendant 6 secondes. Seules les actions lourdes (tout réinitialiser, importer, effacer les données locales, supprimer le compte) demandent encore une confirmation. Page Expenses : regroupement Today / Yesterday / date, recherche, filtre par catégorie, tri, modification, suppression, total du mois, changement de mois.
 
 **Épargne.** Objectifs multiples (nom, icône, montant cible optionnel, déjà épargné, date cible optionnelle). L'épargne **ne se remet jamais à zéro** : le solde est calculé à partir du montant initial, des allocations mensuelles, des dépôts/retraits manuels et de l'argent non utilisé transféré. Historique par mois (+€50 en septembre, +€30 en août…).
 
@@ -172,6 +174,7 @@ Les tests (`tests/`) couvrent la logique métier centrale :
 - parsing des montants (« 32,50 », « 1.000,50 »…), formatage ;
 - diff de persistance, import/export ;
 - synchronisation hors ligne (faux backend Supabase coupé puis rétabli) ;
+- catégorie devinée, autocomplétion, annulation des suppressions ;
 - rythme de dépense, reste à dépenser, récap mensuel ;
 - traduction française complète (toutes les clés), formats français (1 000 €, Septembre 2026) ;
 - données de démo conformes au cahier des charges.

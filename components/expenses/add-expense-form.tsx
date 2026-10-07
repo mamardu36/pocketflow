@@ -1,16 +1,17 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Sparkles, Trash2 } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/components/ui/category-icon";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Field, Input } from "@/components/ui/field";
 import { MoneyInput } from "@/components/ui/money-input";
+import { useUndoableDelete } from "@/hooks/use-undoable-delete";
 import { useApp, useDateLocale, useMoney, useT } from "@/hooks/use-app";
 import { addTransaction, deleteTransaction, updateTransaction } from "@/lib/domain/actions";
 import { buildMonthView } from "@/lib/domain/selectors";
+import { getRecentDescriptions, guessCategory } from "@/lib/domain/suggestions";
 import { defaultDateForMonth, firstDayOfMonth, formatMonthLabel, isDateInMonth, lastDayOfMonth } from "@/lib/dates";
 import { centsToInput, parseMoneyInput } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,7 @@ export function AddExpenseForm({ month, transaction, defaultCategoryId, onDone }
   const t = useT();
   const money = useMoney();
   const locale = useDateLocale();
-  const confirm = useConfirm();
+  const deleteWithUndo = useUndoableDelete();
   const { data, commit } = useApp();
 
   const view = useMemo(() => buildMonthView(data, month), [data, month]);
@@ -38,6 +39,29 @@ export function AddExpenseForm({ month, transaction, defaultCategoryId, onDone }
   const [description, setDescription] = useState(transaction?.description ?? "");
   const [date, setDate] = useState(transaction?.date ?? defaultDateForMonth(month));
   const [errors, setErrors] = useState<{ amount?: string; category?: string; date?: string }>({});
+  // Once the person picks a category themselves, we never override it.
+  const [categoryTouched, setCategoryTouched] = useState(Boolean(transaction || defaultCategoryId));
+  const [suggested, setSuggested] = useState(false);
+  const recentDescriptions = useMemo(() => getRecentDescriptions(data), [data]);
+
+  const onDescriptionChange = (value: string) => {
+    setDescription(value);
+    if (categoryTouched) return;
+    const guess = guessCategory(data, value, categories);
+    if (guess) {
+      setCategoryId(guess.id);
+      setSuggested(true);
+    } else if (suggested) {
+      setCategoryId("");
+      setSuggested(false);
+    }
+  };
+
+  const pickCategory = (id: string) => {
+    setCategoryId(id);
+    setCategoryTouched(true);
+    setSuggested(false);
+  };
 
   const monthLabel = formatMonthLabel(month, locale);
 
@@ -71,13 +95,9 @@ export function AddExpenseForm({ month, transaction, defaultCategoryId, onDone }
     onDone();
   };
 
-  const remove = async () => {
+  const remove = () => {
     if (!transaction) return;
-    const ok = await confirm({ title: t.expense.deleteTitle, confirmLabel: t.common.delete, cancelLabel: t.common.cancel, destructive: true });
-    if (!ok) return;
-    commit((d) => deleteTransaction(d, transaction.id));
-    toast.success(t.expense.deleted);
-    onDone();
+    if (deleteWithUndo((d) => deleteTransaction(d, transaction.id), t.expense.deleted)) onDone();
   };
 
   return (
@@ -94,6 +114,26 @@ export function AddExpenseForm({ month, transaction, defaultCategoryId, onDone }
         />
       </Field>
 
+      <Field label={t.expense.description} htmlFor="expense-description">
+        <Input
+          id="expense-description"
+          value={description}
+          maxLength={80}
+          onChange={(e) => onDescriptionChange(e.target.value)}
+          placeholder={t.expense.descriptionPlaceholder}
+          list={recentDescriptions.length > 0 ? "expense-descriptions" : undefined}
+          autoComplete="off"
+          enterKeyHint="done"
+        />
+        {recentDescriptions.length > 0 && (
+          <datalist id="expense-descriptions">
+            {recentDescriptions.map((d) => (
+              <option key={d} value={d} />
+            ))}
+          </datalist>
+        )}
+      </Field>
+
       <fieldset>
         <legend className="mb-1.5 text-sm font-medium">{t.expense.category}</legend>
         <div role="radiogroup" aria-label={t.expense.category} className="flex flex-wrap gap-2">
@@ -105,7 +145,7 @@ export function AddExpenseForm({ month, transaction, defaultCategoryId, onDone }
                 type="button"
                 role="radio"
                 aria-checked={selected}
-                onClick={() => setCategoryId(c.id)}
+                onClick={() => pickCategory(c.id)}
                 className={cn(
                   "flex h-11 items-center gap-2 rounded-2xl border pl-1.5 pr-3.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   selected ? "border-foreground bg-foreground text-background" : "border-border bg-background hover:bg-muted",
@@ -117,12 +157,14 @@ export function AddExpenseForm({ month, transaction, defaultCategoryId, onDone }
             );
           })}
         </div>
+        {suggested && !errors.category && (
+          <p role="status" className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground animate-fade-in">
+            <Sparkles className="h-3.5 w-3.5" aria-hidden />
+            {t.expense.suggested}
+          </p>
+        )}
         {errors.category && <p role="alert" className="mt-1.5 text-sm text-danger">{errors.category}</p>}
       </fieldset>
-
-      <Field label={t.expense.description} htmlFor="expense-description">
-        <Input id="expense-description" value={description} maxLength={80} onChange={(e) => setDescription(e.target.value)} placeholder={t.expense.descriptionPlaceholder} />
-      </Field>
 
       <Field label={t.expense.date} htmlFor="expense-date" error={errors.date}>
         <Input id="expense-date" type="date" value={date} min={firstDayOfMonth(month)} max={lastDayOfMonth(month)} onChange={(e) => setDate(e.target.value)} />

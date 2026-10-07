@@ -5,7 +5,6 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/components/ui/color-picker";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmojiPicker } from "@/components/ui/emoji-picker";
 import { Field, Input, Select } from "@/components/ui/field";
 import { MoneyInput } from "@/components/ui/money-input";
@@ -13,6 +12,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { CATEGORY_TYPES } from "@/constants/categories";
+import { useUndoableDelete } from "@/hooks/use-undoable-delete";
 import { useApp, useMoney, useT } from "@/hooks/use-app";
 import { calculateAssignedMoney } from "@/lib/calculations/budget";
 import { addCategory, createSavingsGoal, deleteCategory, updateCategory } from "@/lib/domain/actions";
@@ -42,7 +42,7 @@ const NEW_GOAL = "__new__";
 function CategoryForm({ onClose, budget, category, defaultType = "variable", onDeleted }: CategorySheetProps) {
   const t = useT();
   const money = useMoney();
-  const confirm = useConfirm();
+  const deleteWithUndo = useUndoableDelete();
   const { data, commit } = useApp();
 
   const [name, setName] = useState(category?.name ?? "");
@@ -88,13 +88,9 @@ function CategoryForm({ onClose, budget, category, defaultType = "variable", onD
     onClose();
   };
 
-  const remove = async () => {
+  const remove = () => {
     if (!category) return;
-    const count = data.transactions.filter((tx) => tx.categoryId === category.id).length;
-    const ok = await confirm({ title: t.category.deleteTitle, description: t.category.deleteBody(count), confirmLabel: t.common.delete, cancelLabel: t.common.cancel, destructive: true });
-    if (!ok) return;
-    commit((d) => deleteCategory(d, category.id));
-    toast.success(t.category.deleted);
+    if (!deleteWithUndo((d) => deleteCategory(d, category.id), t.category.deleted)) return;
     onClose();
     onDeleted?.();
   };

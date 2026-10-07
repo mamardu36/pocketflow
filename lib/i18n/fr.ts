@@ -15,6 +15,7 @@ export const fr: Messages = {
     continue: "Continuer",
     optional: "Facultatif",
     loading: "Chargement…",
+    undo: "Annuler",
   },
   nav: { home: "Accueil", expenses: "Dépenses", savings: "Épargne", history: "Historique", settings: "Réglages", main: "Navigation principale" },
   welcome: {
@@ -135,7 +136,8 @@ export const fr: Messages = {
     amount: "Montant",
     category: "Catégorie",
     description: "Description",
-    descriptionPlaceholder: "ex. Carrefour",
+    descriptionPlaceholder: "ex. Carrefour (facultatif)",
+    suggested: "Suggérée d'après tes dépenses passées",
     date: "Date",
     submit: "Ajouter la dépense",
     update: "Enregistrer",

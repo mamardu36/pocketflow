@@ -3,7 +3,6 @@
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { toast } from "sonner";
 import { CategorySheet } from "@/components/budget/category-sheet";
 import { ExpenseList } from "@/components/expenses/expense-list";
 import { useExpenseSheet } from "@/components/expenses/expense-sheet-provider";
@@ -11,10 +10,10 @@ import { PageHeader } from "@/components/navigation/page-header";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CategoryIcon } from "@/components/ui/category-icon";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { COLOR_STYLES } from "@/constants/categories";
+import { useUndoableDelete } from "@/hooks/use-undoable-delete";
 import { useApp, useDateLocale, useMoney, useT } from "@/hooks/use-app";
 import { useMonthView } from "@/hooks/use-month-view";
 import { isSpendingAheadOfPace } from "@/lib/calculations/budget";
@@ -55,8 +54,7 @@ function CategoryDetailContent({ category, budget }: { category: BudgetCategory;
   const money = useMoney();
   const locale = useDateLocale();
   const router = useRouter();
-  const confirm = useConfirm();
-  const { commit } = useApp();
+  const deleteWithUndo = useUndoableDelete();
   const expenseSheet = useExpenseSheet();
   const monthKey = getBudgetKey(budget);
   const view = useMonthView(monthKey);
@@ -71,18 +69,8 @@ function CategoryDetailContent({ category, budget }: { category: BudgetCategory;
   const isSavings = category.type === "savings";
   const barClass = over ? "bg-danger" : stats.status === "near-limit" ? "bg-warning" : COLOR_STYLES[category.color].bar;
 
-  const remove = async () => {
-    const ok = await confirm({
-      title: t.category.deleteTitle,
-      description: t.category.deleteBody(transactions.length),
-      confirmLabel: t.common.delete,
-      cancelLabel: t.common.cancel,
-      destructive: true,
-    });
-    if (ok && commit((d) => deleteCategory(d, category.id))) {
-      toast.success(t.category.deleted);
-      router.replace("/");
-    }
+  const remove = () => {
+    if (deleteWithUndo((d) => deleteCategory(d, category.id), t.category.deleted)) router.replace("/");
   };
 
   const figures = [

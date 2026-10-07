@@ -4,12 +4,12 @@ import { Minus, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Field, Input } from "@/components/ui/field";
 import { MoneyInput } from "@/components/ui/money-input";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Sheet } from "@/components/ui/sheet";
 import { COLOR_STYLES } from "@/constants/categories";
+import { useUndoableDelete } from "@/hooks/use-undoable-delete";
 import { useApp, useDateLocale, useMoney, useT } from "@/hooks/use-app";
 import { calculateGoalBalance, calculateGoalProgress, getSavingsContributions, type SavingsContribution } from "@/lib/calculations/savings";
 import { addSavingsTransaction, deleteSavingsGoal, deleteSavingsTransaction } from "@/lib/domain/actions";
@@ -36,7 +36,7 @@ function GoalDetail({ goal, onClose, onEdit }: { goal: SavingsGoal; onClose: () 
   const t = useT();
   const money = useMoney();
   const locale = useDateLocale();
-  const confirm = useConfirm();
+  const deleteWithUndo = useUndoableDelete();
   const { data, commit } = useApp();
   const [mode, setMode] = useState<"deposit" | "withdraw" | null>(null);
   const [amount, setAmount] = useState("");
@@ -68,17 +68,12 @@ function GoalDetail({ goal, onClose, onEdit }: { goal: SavingsGoal; onClose: () 
     }
   };
 
-  const removeGoal = async () => {
-    const ok = await confirm({ title: t.savings.deleteTitle, description: t.savings.deleteBody, confirmLabel: t.common.delete, cancelLabel: t.common.cancel, destructive: true });
-    if (!ok) return;
-    commit((d) => deleteSavingsGoal(d, goal.id));
-    toast.success(t.savings.goalDeleted);
-    onClose();
+  const removeGoal = () => {
+    if (deleteWithUndo((d) => deleteSavingsGoal(d, goal.id), t.savings.goalDeleted)) onClose();
   };
 
-  const removeEntry = async (id: string) => {
-    const ok = await confirm({ title: t.savings.deleteEntry, confirmLabel: t.common.delete, cancelLabel: t.common.cancel, destructive: true });
-    if (ok && commit((d) => deleteSavingsTransaction(d, id))) toast.success(t.savings.entryDeleted);
+  const removeEntry = (id: string) => {
+    deleteWithUndo((d) => deleteSavingsTransaction(d, id), t.savings.entryDeleted);
   };
 
   return (
