@@ -12,6 +12,8 @@ export const STORAGE_KEYS = {
   migrationHandled: (userId: string) => `${p}:migration-handled:${userId}`,
   /** When the "keep your budget safe" card was last dismissed (ms timestamp). */
   installNudgeDismissed: `${p}:install-nudge-dismissed`,
+  /** Same, for the lighter "install the app" card shown to account holders. */
+  installNudgeDismissedCloud: `${p}:install-nudge-dismissed-cloud`,
   /** Set while local changes haven't reached Supabase yet (e.g. offline). */
   cloudPending: (userId: string) => `${p}:cloud-pending:${userId}`,
 } as const;

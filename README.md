@@ -223,7 +223,9 @@ Le mode actif est mémorisé dans `pocketflow:mode`.
 **Protection des données en mode sans compte.** Safari (iPhone et Mac) efface les données d'un site non ouvert depuis environ 7 jours, sauf s'il est installé sur l'écran d'accueil. En mode sans compte, sur téléphone ou dans Safari, le tableau de bord affiche donc un encart « Ne perds pas ton budget » :
 - sur iPhone, il propose d'abord de **créer un compte** (l'app installée sur l'écran d'accueil ne voit pas les données saisies dans Safari), puis un guide d'installation ;
 - sur Android, le bouton *Installer* ouvre la fenêtre d'installation du navigateur ;
-- *Plus tard* le masque 3 jours ; il n'apparaît jamais dans l'app installée, en démo, avec un compte, ni sur Chrome/Edge pour ordinateur.
+- *Plus tard* le masque 3 jours ; il n'apparaît jamais dans l'app installée, en démo, ni sur Chrome/Edge pour ordinateur.
+
+Avec un compte, sur téléphone, un encart plus léger « Installe PocketFlow » propose l'installation (*Plus tard* le masque 30 jours). Dans tous les cas, **Réglages → Compte → Installer l'app** reste disponible tant que l'app n'est pas installée.
 
 **Passage d'invité à compte.** Après connexion, si des données invité existent sur l'appareil, une fenêtre propose de les transférer :
 - compte vide → *Transfer to my account* ;

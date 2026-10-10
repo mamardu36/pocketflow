@@ -289,6 +289,8 @@ export const fr: Messages = {
     feedback: "Donner mon avis",
     feedbackHint: "Dis-moi ce qui marche et ce qui gêne",
     privacy: "Confidentialité",
+    installApp: "Installer l'app",
+    installHint: "Sur ton écran d'accueil, comme une vraie app",
     version: (v) => `Version ${v}`,
   },
   privacy: {
@@ -380,6 +382,9 @@ export const fr: Messages = {
     iosSteps: ["Touche le bouton Partager dans la barre de Safari", "Choisis « Sur l'écran d'accueil »", "Ouvre PocketFlow depuis la nouvelle icône"],
     iosWarning: "Sur iPhone, l'app installée démarre vide : elle ne voit pas ce que tu as saisi dans Safari. Pour y retrouver ton budget, crée d'abord un compte, puis connecte-toi dans l'app installée.",
     iosFresh: "Compris",
+    cloudTitle: "Installe PocketFlow",
+    cloudBody: "Ajoute-la à ton écran d'accueil pour l'ouvrir en un geste, comme une vraie app.",
+    iosCloudNote: "Dans l'app installée, connecte-toi avec ton compte : tu y retrouveras ton budget.",
   },
   sync: {
     pending: "Hors ligne · modifications gardées sur cet appareil",

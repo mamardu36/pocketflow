@@ -1,73 +1,95 @@
 "use client";
 
-import { Share, ShieldCheck, X } from "lucide-react";
+import { ShieldCheck, Smartphone, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { InstallGuideSheet } from "@/components/pwa/install-guide-sheet";
 import { Button } from "@/components/ui/button";
-import { Sheet } from "@/components/ui/sheet";
 import { useApp, useT } from "@/hooks/use-app";
-import {
-  canPromptInstall, detectInstallPlatform, promptInstall, readBrowserInfo, shouldOfferInstall, subscribeInstall,
-  wasJustInstalled, type InstallPlatform,
-} from "@/lib/pwa/install";
+import { useInstallOffer } from "@/hooks/use-install-offer";
 import { STORAGE_KEYS, safeGet, safeSet } from "@/lib/storage/keys";
 
-/** After "Later", the card comes back after this delay: the risk hasn't gone away. */
-const SNOOZE_MS = 3 * 24 * 60 * 60 * 1000;
+const DAY = 24 * 60 * 60 * 1000;
+/** Guests: data can be lost, so the card comes back after 3 days. Accounts: it's only a convenience. */
+const SNOOZE = { guest: 3 * DAY, cloud: 30 * DAY };
 
 /**
- * Guest mode only, in a browser where data can be erased (phones, Safari).
- * iPhone: an installed web app doesn't see Safari's data, so creating an account comes first.
+ * Dashboard card.
+ * - Guest, where data can be erased: "Keep your budget safe" (account first on iPhone).
+ * - Account, on a phone: a lighter "Install PocketFlow".
+ * Always available afterwards in Settings → Install the app.
  */
 export function InstallNudge() {
   const t = useT();
   const router = useRouter();
   const { mode, cloudAvailable } = useApp();
-  const [platform, setPlatform] = useState<InstallPlatform | null>(null);
-  const [canPrompt, setCanPrompt] = useState(false);
-  const [hidden, setHidden] = useState(true);
-  const [iosGuide, setIosGuide] = useState(false);
+  const offer = useInstallOffer();
+  const [snoozed, setSnoozed] = useState(true);
+
+  const kind = mode === "guest" ? "guest" : mode === "cloud" ? "cloud" : null;
+  const key = kind === "cloud" ? STORAGE_KEYS.installNudgeDismissedCloud : STORAGE_KEYS.installNudgeDismissed;
 
   useEffect(() => {
-    const info = readBrowserInfo();
-    if (!info || mode !== "guest" || !shouldOfferInstall(info)) return setHidden(true);
-    const dismissedAt = Number(safeGet(STORAGE_KEYS.installNudgeDismissed) ?? 0);
-    setHidden(Date.now() - dismissedAt < SNOOZE_MS);
-    setPlatform(detectInstallPlatform(info));
-    setCanPrompt(canPromptInstall());
-    return subscribeInstall(() => {
-      setCanPrompt(canPromptInstall());
-      if (wasJustInstalled()) setHidden(true);
-    }) as () => void;
-  }, [mode]);
+    if (!kind) return;
+    setSnoozed(Date.now() - Number(safeGet(key) ?? 0) < SNOOZE[kind]);
+  }, [kind, key]);
 
-  const ios = platform === "ios";
-  const canInstall = ios || canPrompt;
-  if (hidden || !platform || (!canInstall && !cloudAvailable)) return null;
+  if (!kind || !offer.ready || snoozed) return null;
+  if (kind === "guest" && (!offer.atRisk || (!offer.canInstall && !cloudAvailable))) return null;
+  if (kind === "cloud" && (!offer.onPhone || !offer.canInstall)) return null;
 
   const snooze = () => {
     try {
-      safeSet(STORAGE_KEYS.installNudgeDismissed, String(Date.now()));
+      safeSet(key, String(Date.now()));
     } catch {
       /* ignore */
     }
-    setHidden(true);
-  };
-  const install = async () => {
-    if (ios) return setIosGuide(true);
-    if (await promptInstall()) setHidden(true);
+    setSnoozed(true);
   };
   const createAccount = () => router.push("/auth");
 
-  // iPhone: the account is the safe path (data kept); elsewhere installing is the quickest fix.
-  const accountFirst = ios && cloudAvailable;
+  let actions: ReactNode;
+  if (kind === "cloud") {
+    actions = (
+      <Button size="sm" onClick={offer.install}>
+        {t.install.install}
+      </Button>
+    );
+  } else if (offer.ios && cloudAvailable) {
+    // iPhone: the installed app doesn't see Safari's data, so the account is the safe path.
+    actions = (
+      <>
+        <Button size="sm" onClick={createAccount}>
+          {t.install.createAccount}
+        </Button>
+        <Button size="sm" variant="ghost" onClick={offer.install}>
+          {t.install.install}
+        </Button>
+      </>
+    );
+  } else {
+    actions = (
+      <>
+        {offer.canInstall && (
+          <Button size="sm" onClick={offer.install}>
+            {t.install.install}
+          </Button>
+        )}
+        {cloudAvailable && (
+          <Button size="sm" variant={offer.canInstall ? "ghost" : "primary"} onClick={createAccount}>
+            {t.install.createAccount}
+          </Button>
+        )}
+      </>
+    );
+  }
+
+  const title = kind === "cloud" ? t.install.cloudTitle : t.install.title;
+  const body = kind === "cloud" ? t.install.cloudBody : offer.ios ? t.install.bodyIos : t.install.body;
 
   return (
     <>
-      <section
-        aria-labelledby="install-nudge-title"
-        className="relative rounded-3xl border border-border bg-card p-4 pr-12 shadow-soft animate-fade-in"
-      >
+      <section aria-labelledby="install-nudge-title" className="relative rounded-3xl border border-border bg-card p-4 pr-12 shadow-soft animate-fade-in">
         <button
           type="button"
           onClick={snooze}
@@ -78,66 +100,18 @@ export function InstallNudge() {
         </button>
         <div className="flex gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary" aria-hidden>
-            <ShieldCheck className="h-5 w-5" />
+            {kind === "cloud" ? <Smartphone className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
           </span>
           <div className="min-w-0">
             <h2 id="install-nudge-title" className="font-semibold">
-              {t.install.title}
+              {title}
             </h2>
-            <p className="mt-0.5 text-sm text-muted-foreground">{ios ? t.install.bodyIos : t.install.body}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">{body}</p>
           </div>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2 pl-[52px]">
-          {accountFirst ? (
-            <>
-              <Button size="sm" onClick={createAccount}>
-                {t.install.createAccount}
-              </Button>
-              <Button size="sm" variant="ghost" onClick={install}>
-                {t.install.install}
-              </Button>
-            </>
-          ) : (
-            <>
-              {canInstall && (
-                <Button size="sm" onClick={install}>
-                  {t.install.install}
-                </Button>
-              )}
-              {cloudAvailable && (
-                <Button size="sm" variant={canInstall ? "ghost" : "primary"} onClick={createAccount}>
-                  {t.install.createAccount}
-                </Button>
-              )}
-            </>
-          )}
-        </div>
+        <div className="mt-3 flex flex-wrap gap-2 pl-[52px]">{actions}</div>
       </section>
-
-      <Sheet open={iosGuide} onClose={() => setIosGuide(false)} title={t.install.iosTitle} closeLabel={t.common.close}>
-        <ol className="space-y-3">
-          {t.install.iosSteps.map((step, i) => (
-            <li key={step} className="flex items-center gap-3">
-              <span className="tabular grid h-8 w-8 shrink-0 place-items-center rounded-full bg-muted text-sm font-semibold">
-                {i + 1}
-              </span>
-              <span className="flex-1">{step}</span>
-              {i === 0 && <Share className="h-5 w-5 shrink-0 text-primary" aria-hidden />}
-            </li>
-          ))}
-        </ol>
-        <p className="mt-5 rounded-2xl bg-warning/10 px-4 py-3 text-sm text-foreground">{t.install.iosWarning}</p>
-        <div className="mt-5 flex flex-col gap-2">
-          {cloudAvailable && (
-            <Button size="lg" onClick={createAccount}>
-              {t.install.createAccount}
-            </Button>
-          )}
-          <Button size="lg" variant={cloudAvailable ? "ghost" : "primary"} onClick={() => setIosGuide(false)}>
-            {t.install.iosFresh}
-          </Button>
-        </div>
-      </Sheet>
+      <InstallGuideSheet open={offer.guideOpen} onClose={offer.closeGuide} />
     </>
   );
 }

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/navigation/page-header";
+import { InstallGuideSheet } from "@/components/pwa/install-guide-sheet";
 import { Card } from "@/components/ui/card";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { Field, Select } from "@/components/ui/field";
@@ -15,6 +16,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { APP_CONFIG } from "@/config/app";
 import { CURRENCIES, CURRENCY_CODES } from "@/constants/currencies";
 import { useApp, useT } from "@/hooks/use-app";
+import { useInstallOffer } from "@/hooks/use-install-offer";
 import { updatePreferences } from "@/lib/domain/actions";
 import { createEmptyData } from "@/lib/domain/factories";
 import { hasUserData } from "@/lib/domain/selectors";
@@ -94,6 +96,7 @@ export default function SettingsPage() {
   const app = useApp();
   const { mode, user, data, commit, cloudAvailable } = app;
   const fileRef = useRef<HTMLInputElement>(null);
+  const installOffer = useInstallOffer();
   const [busy, setBusy] = useState(false);
 
   const run = async (task: () => Promise<void>) => {
@@ -258,6 +261,14 @@ export default function SettingsPage() {
             />
           </>
         )}
+        {installOffer.canInstall && (
+          <Row
+            icon={<Smartphone className="h-4 w-4" />}
+            label={t.settings.installApp}
+            hint={t.settings.installHint}
+            onClick={installOffer.install}
+          />
+        )}
       </Section>
 
       <Section title={t.settings.preferences}>
@@ -307,6 +318,8 @@ export default function SettingsPage() {
         <Row icon={<RotateCcw className="h-4 w-4" />} label={t.settings.reset} onClick={reset} danger disabled={busy} />
       </Section>
       <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={onImportFile} aria-hidden tabIndex={-1} />
+
+      <InstallGuideSheet open={installOffer.guideOpen} onClose={installOffer.closeGuide} />
 
       <Section title={t.settings.about}>
         {APP_CONFIG.contactEmail && (

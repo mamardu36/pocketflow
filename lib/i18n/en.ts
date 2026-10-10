@@ -286,6 +286,8 @@ export const en = {
     feedback: "Send feedback",
     feedbackHint: "Tell me what works and what doesn't",
     privacy: "Privacy",
+    installApp: "Install the app",
+    installHint: "On your home screen, like a real app",
     version: (v: string) => `Version ${v}`,
   },
   privacy: {
@@ -377,6 +379,9 @@ export const en = {
     iosSteps: ["Tap the Share button in Safari's toolbar", "Choose “Add to Home Screen”", "Open PocketFlow from the new icon"],
     iosWarning: "On iPhone, the installed app starts empty: it can't see what you entered in Safari. To find your budget there, create an account first, then sign in from the installed app.",
     iosFresh: "Got it",
+    cloudTitle: "Install PocketFlow",
+    cloudBody: "Add it to your home screen to open it in one tap, like a real app.",
+    iosCloudNote: "In the installed app, sign in with your account: your budget will be there.",
   },
   sync: {
     pending: "Offline · changes saved on this device",
