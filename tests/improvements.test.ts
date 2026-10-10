@@ -106,3 +106,14 @@ describe("French", () => {
     expect(buildMonthView(data, SEPT_2026, today)!.summary.unassigned).toBe(3000);
   });
 });
+
+describe("currency symbol position in the amount field", () => {
+  it("goes after the number in French, before in English", async () => {
+    const { currencySymbolPosition } = await import("@/lib/money");
+    expect(currencySymbolPosition("EUR", "fr")).toBe("suffix");
+    expect(currencySymbolPosition("CHF", "fr")).toBe("suffix");
+    expect(currencySymbolPosition("EUR", "en")).toBe("prefix");
+    expect(currencySymbolPosition("USD", "en")).toBe("prefix");
+    expect(currencySymbolPosition("GBP", "en")).toBe("prefix");
+  });
+});

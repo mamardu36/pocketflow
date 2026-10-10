@@ -277,6 +277,42 @@ export const en = {
     resetBody: "All budgets, expenses and savings for this account will be permanently deleted.",
     resetDone: "All data reset",
     cloudUnavailable: "Accounts aren't configured on this deployment.",
+    about: "About",
+    feedback: "Send feedback",
+    feedbackHint: "Tell me what works and what doesn't",
+    feedbackSubject: "PocketFlow feedback",
+    feedbackBody: (details: string) =>
+      `What I liked:\n\n\nWhat bothered me or confused me:\n\n\nAn idea:\n\n\n—\n${details}`,
+    privacy: "Privacy",
+    version: (v: string) => `Version ${v}`,
+  },
+  privacy: {
+    title: "Privacy",
+    updated: "Last updated: October 2026",
+    intro: "PocketFlow helps you plan your monthly budget. Here is, in plain words, what happens to your data.",
+    sections: [
+      {
+        title: "What PocketFlow stores",
+        body: "Your budgets, categories, expenses, savings goals and preferences (currency, theme, language). Nothing else. PocketFlow never connects to your bank.",
+      },
+      {
+        title: "Without an account",
+        body: "Everything stays in this browser, on your device. We never receive it. Clearing your browser data, or Settings → Clear local data, erases it.",
+      },
+      {
+        title: "With an account",
+        body: "Your email address and the data above are stored with Supabase, our database provider, so you can find your budget on any device. Each account can only access its own data. Sign-in emails (confirmation, password reset) are sent through our email provider, Brevo.",
+      },
+      {
+        title: "What we never do",
+        body: "No ads, no selling or sharing of your data, no tracking or analytics tools. The site is hosted by Vercel, which keeps standard technical logs (such as IP addresses) for security.",
+      },
+      {
+        title: "You stay in control",
+        body: "Export all your data at any time (Settings → Export). Delete your account in one tap (Settings → Delete account): your online data is then permanently erased.",
+      },
+    ],
+    contact: (email: string) => `A question? Write to ${email}`,
   },
   auth: {
     signInTitle: "Welcome back",

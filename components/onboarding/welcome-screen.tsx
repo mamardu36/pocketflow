@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, FlaskConical, Wallet } from "lucide-react";
+import { Check, FlaskConical } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button, buttonClasses } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import { APP_CONFIG } from "@/config/app";
 import { useApp, useMoney, useT } from "@/hooks/use-app";
 import { localizeName } from "@/lib/i18n";
@@ -36,9 +37,7 @@ export function WelcomeScreen() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col px-6 pb-[max(2rem,env(safe-area-inset-bottom))] pt-[max(3rem,env(safe-area-inset-top))]">
       <div className="flex items-center gap-2 text-sm font-semibold">
-        <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground">
-          <Wallet className="h-4 w-4" aria-hidden />
-        </span>
+        <Logo className="h-8 w-8" />
         {APP_CONFIG.name}
       </div>
 
@@ -73,6 +72,11 @@ export function WelcomeScreen() {
           <FlaskConical className="h-4 w-4" aria-hidden />
           {t.welcome.tryDemo}
         </button>
+        <p className="text-center">
+          <Link href="/privacy" className="text-xs text-muted-foreground underline-offset-2 hover:underline">
+            {t.settings.privacy}
+          </Link>
+        </p>
       </div>
     </div>
   );

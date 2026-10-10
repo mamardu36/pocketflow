@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useExpenseSheet } from "@/components/expenses/expense-sheet-provider";
 import { isNavActive, NAV_ITEMS } from "@/components/navigation/nav-items";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/ui/logo";
 import { APP_CONFIG } from "@/config/app";
 import { useApp, useT } from "@/hooks/use-app";
 import { cn } from "@/lib/utils";
@@ -18,9 +19,7 @@ export function DesktopSidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-background px-4 py-6 md:flex">
       <Link href="/" className="mb-8 flex items-center gap-2.5 px-2 text-lg font-semibold tracking-tight">
-        <span aria-hidden className="grid h-8 w-8 place-items-center rounded-xl bg-hero text-hero-foreground">
-          <span className="h-3.5 w-3.5 rounded-full border-[3px] border-current border-r-transparent" />
-        </span>
+        <Logo className="h-8 w-8" />
         {APP_CONFIG.name}
       </Link>
       <Button onClick={() => expense.open()} className="mb-6 w-full">

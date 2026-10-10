@@ -76,3 +76,11 @@ export function centsToInput(cents: Cents): string {
   const fraction = String(Math.abs(cents % 100)).padStart(2, "0");
   return `${whole}.${fraction}`;
 }
+
+/** Where the currency symbol goes for this language: "€12" in English, "12 €" in French. */
+export function currencySymbolPosition(currency: CurrencyCode, language: LanguageCode = "en"): "prefix" | "suffix" {
+  const parts = new Intl.NumberFormat(moneyLocale(currency, language), { style: "currency", currency }).formatToParts(1);
+  const symbolIndex = parts.findIndex((p) => p.type === "currency");
+  const numberIndex = parts.findIndex((p) => p.type === "integer");
+  return symbolIndex > numberIndex ? "suffix" : "prefix";
+}

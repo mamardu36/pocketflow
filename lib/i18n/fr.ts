@@ -280,6 +280,42 @@ export const fr: Messages = {
     resetBody: "Tous les budgets, dépenses et épargnes de ce compte seront définitivement supprimés.",
     resetDone: "Données réinitialisées",
     cloudUnavailable: "Les comptes ne sont pas configurés sur ce site.",
+    about: "À propos",
+    feedback: "Donner mon avis",
+    feedbackHint: "Dis-moi ce qui marche et ce qui gêne",
+    feedbackSubject: "Avis sur PocketFlow",
+    feedbackBody: (details) =>
+      `Ce que j'ai aimé :\n\n\nCe qui m'a gêné ou que je n'ai pas compris :\n\n\nUne idée :\n\n\n—\n${details}`,
+    privacy: "Confidentialité",
+    version: (v) => `Version ${v}`,
+  },
+  privacy: {
+    title: "Confidentialité",
+    updated: "Dernière mise à jour : octobre 2026",
+    intro: "PocketFlow t'aide à planifier ton budget du mois. Voici, simplement, ce qu'il advient de tes données.",
+    sections: [
+      {
+        title: "Ce que PocketFlow enregistre",
+        body: "Tes budgets, catégories, dépenses, objectifs d'épargne et préférences (devise, thème, langue). Rien d'autre. PocketFlow ne se connecte jamais à ta banque.",
+      },
+      {
+        title: "Sans compte",
+        body: "Tout reste dans ce navigateur, sur ton appareil. Nous ne recevons rien. Effacer les données du navigateur, ou Réglages → Effacer les données locales, les supprime.",
+      },
+      {
+        title: "Avec un compte",
+        body: "Ton adresse e-mail et les données ci-dessus sont stockées chez Supabase, notre hébergeur de base de données, pour que tu retrouves ton budget sur tous tes appareils. Chaque compte n'a accès qu'à ses propres données. Les e-mails de connexion (confirmation, mot de passe oublié) sont envoyés par notre prestataire d'envoi, Brevo.",
+      },
+      {
+        title: "Ce que nous ne faisons jamais",
+        body: "Pas de publicité, pas de vente ni de partage de tes données, aucun outil de pistage ou de statistiques. Le site est hébergé par Vercel, qui conserve des journaux techniques classiques (comme les adresses IP) pour la sécurité.",
+      },
+      {
+        title: "Tu gardes le contrôle",
+        body: "Exporte toutes tes données quand tu veux (Réglages → Exporter). Supprime ton compte en un geste (Réglages → Supprimer le compte) : tes données en ligne sont alors définitivement effacées.",
+      },
+    ],
+    contact: (email) => `Une question ? Écris à ${email}`,
   },
   auth: {
     signInTitle: "Content de te revoir",

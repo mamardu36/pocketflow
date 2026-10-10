@@ -11,9 +11,9 @@ import { SyncBanner } from "@/components/navigation/sync-banner";
 import { ConfirmProvider } from "@/components/ui/confirm-dialog";
 import { useApp } from "@/hooks/use-app";
 
-const STANDALONE_ROUTES = ["/welcome", "/onboarding", "/auth", "/reset-password"];
+const STANDALONE_ROUTES = ["/welcome", "/onboarding", "/auth", "/reset-password", "/privacy"];
 /** Public pages rendered on the server too, so crawlers and link previews see real content. */
-const PUBLIC_ROUTES = ["/welcome"];
+const PUBLIC_ROUTES = ["/welcome", "/privacy"];
 
 function LoadingScreen() {
   return (

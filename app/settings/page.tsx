@@ -1,6 +1,8 @@
 "use client";
 
-import { Cloud, Download, FlaskConical, LogOut, RotateCcw, Smartphone, Trash2, Upload, UserRound } from "lucide-react";
+import {
+  Cloud, Download, FlaskConical, LogOut, MessageCircleHeart, RotateCcw, ShieldCheck, Smartphone, Trash2, Upload, UserRound,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
@@ -200,6 +202,20 @@ export default function SettingsPage() {
     });
   };
 
+  // Opens the mail app with a short template; technical details help reproduce problems.
+  const sendFeedback = () => {
+    const details = [
+      `${APP_CONFIG.name} ${APP_CONFIG.version}`,
+      `mode: ${mode ?? "-"}`,
+      `lang: ${data.preferences.language}`,
+      `screen: ${window.screen.width}×${window.screen.height}`,
+      navigator.userAgent,
+    ].join(" · ");
+    const subject = encodeURIComponent(t.settings.feedbackSubject);
+    const body = encodeURIComponent(t.settings.feedbackBody(details));
+    window.location.href = `mailto:${APP_CONFIG.contactEmail}?subject=${subject}&body=${body}`;
+  };
+
   const localGuestData = mode === "cloud" && hasUserData(LocalRepository.guest().peek());
 
   return (
@@ -304,7 +320,21 @@ export default function SettingsPage() {
       </Section>
       <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" onChange={onImportFile} aria-hidden tabIndex={-1} />
 
-      <p className="pb-2 text-center text-xs text-muted-foreground">{APP_CONFIG.name}</p>
+      <Section title={t.settings.about}>
+        {APP_CONFIG.contactEmail && (
+          <Row
+            icon={<MessageCircleHeart className="h-4 w-4" />}
+            label={t.settings.feedback}
+            hint={t.settings.feedbackHint}
+            onClick={sendFeedback}
+          />
+        )}
+        <Row icon={<ShieldCheck className="h-4 w-4" />} label={t.settings.privacy} href="/privacy" />
+      </Section>
+
+      <p className="pb-2 text-center text-xs text-muted-foreground">
+        {APP_CONFIG.name} · {t.settings.version(APP_CONFIG.version)}
+      </p>
     </div>
   );
 }
