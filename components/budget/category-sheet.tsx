@@ -2,7 +2,6 @@
 
 import { Trash2, TriangleAlert } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { EmojiPicker } from "@/components/ui/emoji-picker";
@@ -12,7 +11,7 @@ import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
 import { CATEGORY_TYPES } from "@/constants/categories";
-import { useUndoableDelete } from "@/hooks/use-undoable-delete";
+import { useUndoable } from "@/hooks/use-undoable";
 import { useApp, useMoney, useT } from "@/hooks/use-app";
 import { calculateAssignedMoney } from "@/lib/calculations/budget";
 import { addCategory, createSavingsGoal, deleteCategory, updateCategory } from "@/lib/domain/actions";
@@ -42,7 +41,7 @@ const NEW_GOAL = "__new__";
 function CategoryForm({ onClose, budget, category, defaultType = "variable", onDeleted }: CategorySheetProps) {
   const t = useT();
   const money = useMoney();
-  const deleteWithUndo = useUndoableDelete();
+  const deleteWithUndo = useUndoable();
   const { data, commit } = useApp();
 
   const [name, setName] = useState(category?.name ?? "");
@@ -84,7 +83,6 @@ function CategoryForm({ onClose, budget, category, defaultType = "variable", onD
       return category ? updateCategory(next, category.id, draft) : addCategory(next, budget.id, draft);
     });
     if (!ok) return;
-    toast.success(category ? t.category.saved : t.category.created, leftAfter < 0 ? { description: t.category.overWarning(money(-leftAfter)) } : undefined);
     onClose();
   };
 

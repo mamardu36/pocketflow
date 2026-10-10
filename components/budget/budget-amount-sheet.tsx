@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { MoneyInput } from "@/components/ui/money-input";
@@ -31,8 +30,7 @@ function AmountForm({ budget, onClose }: { budget: MonthlyBudget; onClose: () =>
     const cents = parseMoneyInput(value);
     if (cents === null) return setError(t.category.invalidAmount);
     if (commit((d) => updateBudget(d, budget.id, { amount: cents }))) {
-      toast.success(t.dashboard.budgetUpdated);
-      onClose();
+        onClose();
     }
   };
 

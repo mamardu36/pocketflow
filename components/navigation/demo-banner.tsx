@@ -2,7 +2,6 @@
 
 import { RotateCcw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useApp, useT } from "@/hooks/use-app";
 
 export function DemoBanner() {
@@ -18,8 +17,7 @@ export function DemoBanner() {
         type="button"
         onClick={async () => {
           await startDemo();
-          toast.success(t.demo.resetDone);
-        }}
+              }}
         className="grid h-8 w-8 place-items-center rounded-full hover:bg-warning/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label={t.demo.reset}
         title={t.demo.reset}

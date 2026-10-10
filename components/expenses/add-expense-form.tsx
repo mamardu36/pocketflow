@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CategoryIcon } from "@/components/ui/category-icon";
 import { Field, Input } from "@/components/ui/field";
 import { MoneyInput } from "@/components/ui/money-input";
-import { useUndoableDelete } from "@/hooks/use-undoable-delete";
+import { useUndoable } from "@/hooks/use-undoable";
 import { useApp, useDateLocale, useMoney, useT } from "@/hooks/use-app";
 import { addTransaction, deleteTransaction, updateTransaction } from "@/lib/domain/actions";
 import { buildMonthView } from "@/lib/domain/selectors";
@@ -28,7 +28,7 @@ export function AddExpenseForm({ month, transaction, defaultCategoryId, onDone }
   const t = useT();
   const money = useMoney();
   const locale = useDateLocale();
-  const deleteWithUndo = useUndoableDelete();
+  const deleteWithUndo = useUndoable();
   const { data, commit } = useApp();
 
   const view = useMemo(() => buildMonthView(data, month), [data, month]);
@@ -83,9 +83,9 @@ export function AddExpenseForm({ month, transaction, defaultCategoryId, onDone }
     const ok = commit((d) => (transaction ? updateTransaction(d, transaction.id, draft) : addTransaction(d, draft)));
     if (!ok) return;
 
-    if (transaction) {
-      toast.success(t.expense.updated);
-    } else {
+    // Adding an expense is the one place a notification is worth it: it tells what's left.
+    if (!transaction) {
+      toast.dismiss();
       const spentBefore = view.stats.get(category.id)?.spent ?? 0;
       const remaining = category.assigned - spentBefore - cents;
       toast.success(t.expense.added(`${money(cents)} · ${draft.description}`), {

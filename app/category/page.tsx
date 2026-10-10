@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Circle, CircleCheck, Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { CategorySheet } from "@/components/budget/category-sheet";
@@ -13,12 +13,13 @@ import { CategoryIcon } from "@/components/ui/category-icon";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { COLOR_STYLES } from "@/constants/categories";
-import { useUndoableDelete } from "@/hooks/use-undoable-delete";
+import { useUndoable } from "@/hooks/use-undoable";
 import { useApp, useDateLocale, useMoney, useT } from "@/hooks/use-app";
+import { useFixedPayment } from "@/hooks/use-fixed-payment";
 import { useMonthView } from "@/hooks/use-month-view";
 import { isSpendingAheadOfPace } from "@/lib/calculations/budget";
 import { formatMonthLabel } from "@/lib/dates";
-import { deleteCategory } from "@/lib/domain/actions";
+import { deleteCategory, isFixedPaid } from "@/lib/domain/actions";
 import { getBudgetKey } from "@/lib/domain/selectors";
 import { cn } from "@/lib/utils";
 import type { BudgetCategory, MonthlyBudget } from "@/types";
@@ -54,7 +55,8 @@ function CategoryDetailContent({ category, budget }: { category: BudgetCategory;
   const money = useMoney();
   const locale = useDateLocale();
   const router = useRouter();
-  const deleteWithUndo = useUndoableDelete();
+  const deleteWithUndo = useUndoable();
+  const togglePaid = useFixedPayment();
   const expenseSheet = useExpenseSheet();
   const monthKey = getBudgetKey(budget);
   const view = useMonthView(monthKey);
@@ -65,6 +67,7 @@ function CategoryDetailContent({ category, budget }: { category: BudgetCategory;
   if (!view || !stats) return null;
 
   const over = stats.status === "over";
+  const paid = isFixedPaid(category, stats.spent);
   const ahead = category.type === "variable" && isSpendingAheadOfPace(stats.spent, category.assigned, view.monthProgress);
   const isSavings = category.type === "savings";
   const barClass = over ? "bg-danger" : stats.status === "near-limit" ? "bg-warning" : COLOR_STYLES[category.color].bar;
@@ -141,10 +144,30 @@ function CategoryDetailContent({ category, budget }: { category: BudgetCategory;
 
       {!isSavings && (
         <>
-          <Button size="lg" className="w-full" onClick={() => expenseSheet.open({ categoryId: category.id, month: monthKey })}>
-            <Plus className="h-5 w-5" aria-hidden />
-            {t.dashboard.addExpense}
-          </Button>
+          {category.type === "fixed" && category.assigned > 0 ? (
+            <div className="space-y-2">
+              <Button
+                size="lg"
+                variant={paid ? "secondary" : "primary"}
+                role="checkbox"
+                aria-checked={paid}
+                className={cn("w-full", paid && "text-positive")}
+                onClick={() => togglePaid(category, monthKey, stats.spent, paid)}
+              >
+                {paid ? <CircleCheck className="h-5 w-5" aria-hidden /> : <Circle className="h-5 w-5" aria-hidden />}
+                {t.category.paid}
+              </Button>
+              <Button variant="ghost" className="w-full" onClick={() => expenseSheet.open({ categoryId: category.id, month: monthKey })}>
+                <Plus className="h-4 w-4" aria-hidden />
+                {t.category.addOther}
+              </Button>
+            </div>
+          ) : (
+            <Button size="lg" className="w-full" onClick={() => expenseSheet.open({ categoryId: category.id, month: monthKey })}>
+              <Plus className="h-5 w-5" aria-hidden />
+              {t.dashboard.addExpense}
+            </Button>
+          )}
           <section aria-labelledby="category-transactions">
             <h2 id="category-transactions" className="mb-2 px-1 text-base font-semibold">
               {t.category.transactions}

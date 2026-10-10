@@ -176,3 +176,27 @@ export function addSuggestedCategories(data: AppData, budgetId: string, suggesti
   }
   return next;
 }
+
+/** True when a fixed expense has been paid in full this month. */
+export function isFixedPaid(category: BudgetCategory, spent: number): boolean {
+  return category.type === "fixed" && category.assigned > 0 && spent >= category.assigned;
+}
+
+/**
+ * "Paid" button of a fixed expense: records what's left to pay as one expense
+ * (the full amount, or the rest after a partial payment). The budgeted amount stays separate.
+ */
+export function markFixedPaid(data: AppData, categoryId: string, date: string): AppData {
+  const category = data.categories.find((c) => c.id === categoryId);
+  if (!category || category.type !== "fixed") throw new Error("Only fixed expenses can be marked as paid.");
+  const spent = data.transactions.filter((t) => t.categoryId === categoryId).reduce((sum, t) => sum + t.amount, 0);
+  const rest = category.assigned - spent;
+  if (rest <= 0) return data;
+  return addTransaction(data, { categoryId, amount: rest, description: category.name, date });
+}
+
+/** Unticking "Paid": removes this month's payments of the fixed expense (the allocation stays). */
+export function markFixedUnpaid(data: AppData, categoryId: string): AppData {
+  if (!data.transactions.some((t) => t.categoryId === categoryId)) return data;
+  return { ...data, transactions: data.transactions.filter((t) => t.categoryId !== categoryId) };
+}

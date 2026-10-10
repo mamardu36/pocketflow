@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ColorPicker } from "@/components/ui/color-picker";
 import { EmojiPicker } from "@/components/ui/emoji-picker";
@@ -48,8 +47,7 @@ function GoalForm({ goal, onClose }: { goal?: SavingsGoal | null; onClose: () =>
     const draft = { name: name.trim(), emoji, color, targetAmount: targetCents, initialAmount: initialCents, targetDate: isValidISODate(date) ? date : null };
     const ok = commit((d) => (goal ? updateSavingsGoal(d, goal.id, draft) : createSavingsGoal(d, draft).data));
     if (ok) {
-      toast.success(goal ? t.savings.goalSaved : t.savings.goalCreated);
-      onClose();
+        onClose();
     }
   };
 

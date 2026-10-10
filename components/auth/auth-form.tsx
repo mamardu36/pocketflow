@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { authErrorMessage } from "@/components/auth/auth-errors";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -46,7 +45,6 @@ export function AuthForm({ initialTab = "signin" }: { initialTab?: "signin" | "s
         setInfo(t.auth.linkSent);
       } else if (view === "signin") {
         await signIn(email.trim(), password);
-        toast.success(t.auth.signedIn);
         router.replace("/");
       } else {
         const { needsConfirmation } = await signUp(email.trim(), password);
@@ -54,7 +52,6 @@ export function AuthForm({ initialTab = "signin" }: { initialTab?: "signin" | "s
           setView("signin");
           setInfo(t.auth.checkEmail);
         } else {
-          toast.success(t.auth.accountCreated);
           router.replace("/");
         }
       }

@@ -100,3 +100,47 @@ describe("undo", () => {
     expect(undo(withoutCategory).transactions).toHaveLength(0);
   });
 });
+
+describe("undo of an addition", () => {
+  it("removes an expense that was just added, keeping later changes", () => {
+    const data = sampleMonth();
+    const added = spend(data, SEPT_2026, "Rent", 60000, "2026-09-01");
+    const later = spend(added, SEPT_2026, "Groceries", 3250, "2026-09-02");
+    const restored = buildUndo(data, added)(later);
+    expect(restored.transactions.map((t) => t.amount)).toEqual([3250]);
+  });
+});
+
+describe("fixed expenses: Paid button", () => {
+  it("records the full amount once, then is ticked", async () => {
+    const { isFixedPaid, markFixedPaid } = await import("@/lib/domain/actions");
+    const data = sampleMonth();
+    const rent = categoryByName(data, SEPT_2026, "Rent");
+    const paid = markFixedPaid(data, rent.id, "2026-09-03");
+    expect(paid.transactions).toEqual([expect.objectContaining({ categoryId: rent.id, amount: 60000, description: "Rent", date: "2026-09-03" })]);
+    expect(isFixedPaid(rent, 60000)).toBe(true);
+    expect(markFixedPaid(paid, rent.id, "2026-09-04")).toBe(paid); // nothing left to pay
+  });
+
+  it("pays only the rest after a partial payment", async () => {
+    const { markFixedPaid } = await import("@/lib/domain/actions");
+    const data = spend(sampleMonth(), SEPT_2026, "Rent", 20000, "2026-09-01");
+    const paid = markFixedPaid(data, categoryByName(data, SEPT_2026, "Rent").id, "2026-09-03");
+    expect(paid.transactions.map((t) => t.amount)).toEqual([20000, 40000]);
+  });
+
+  it("unticking removes the payments but keeps the budgeted amount", async () => {
+    const { markFixedPaid, markFixedUnpaid } = await import("@/lib/domain/actions");
+    const data = sampleMonth();
+    const rent = categoryByName(data, SEPT_2026, "Rent");
+    const unpaid = markFixedUnpaid(markFixedPaid(data, rent.id, "2026-09-03"), rent.id);
+    expect(unpaid.transactions).toHaveLength(0);
+    expect(categoryByName(unpaid, SEPT_2026, "Rent").assigned).toBe(60000);
+  });
+
+  it("refuses non-fixed categories", async () => {
+    const { markFixedPaid } = await import("@/lib/domain/actions");
+    const data = sampleMonth();
+    expect(() => markFixedPaid(data, categoryByName(data, SEPT_2026, "Groceries").id, "2026-09-03")).toThrow();
+  });
+});

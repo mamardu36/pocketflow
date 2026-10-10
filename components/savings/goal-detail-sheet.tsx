@@ -2,14 +2,13 @@
 
 import { Minus, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
 import { MoneyInput } from "@/components/ui/money-input";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { Sheet } from "@/components/ui/sheet";
 import { COLOR_STYLES } from "@/constants/categories";
-import { useUndoableDelete } from "@/hooks/use-undoable-delete";
+import { useUndoable } from "@/hooks/use-undoable";
 import { useApp, useDateLocale, useMoney, useT } from "@/hooks/use-app";
 import { calculateGoalBalance, calculateGoalProgress, getSavingsContributions, type SavingsContribution } from "@/lib/calculations/savings";
 import { addSavingsTransaction, deleteSavingsGoal, deleteSavingsTransaction } from "@/lib/domain/actions";
@@ -36,7 +35,7 @@ function GoalDetail({ goal, onClose, onEdit }: { goal: SavingsGoal; onClose: () 
   const t = useT();
   const money = useMoney();
   const locale = useDateLocale();
-  const deleteWithUndo = useUndoableDelete();
+  const deleteWithUndo = useUndoable();
   const { data, commit } = useApp();
   const [mode, setMode] = useState<"deposit" | "withdraw" | null>(null);
   const [amount, setAmount] = useState("");
@@ -60,7 +59,6 @@ function GoalDetail({ goal, onClose, onEdit }: { goal: SavingsGoal; onClose: () 
     const signed = mode === "withdraw" ? -cents : cents;
     const ok = commit((d) => addSavingsTransaction(d, { goalId: goal.id, amount: signed, date: toISODate(new Date()), note }));
     if (ok) {
-      toast.success(mode === "withdraw" ? t.savings.moneyWithdrawn : t.savings.moneyAdded);
       setMode(null);
       setAmount("");
       setNote("");

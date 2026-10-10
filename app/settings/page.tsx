@@ -112,11 +112,9 @@ export default function SettingsPage() {
 
   const exportJson = () => {
     downloadFile(`${slug}-${stamp}.json`, buildJsonExport(data), "application/json");
-    toast.success(t.settings.exported);
   };
   const exportCsv = () => {
     downloadFile(`${slug}-expenses-${stamp}.csv`, buildTransactionsCsv(data), "text/csv;charset=utf-8");
-    toast.success(t.settings.exported);
   };
 
   const onImportFile = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -257,7 +255,6 @@ export default function SettingsPage() {
               label={t.demo.reset}
               onClick={() => run(async () => {
                 await app.startDemo();
-                toast.success(t.demo.resetDone);
               })}
             />
             <Row

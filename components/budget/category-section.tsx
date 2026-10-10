@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { CategoryCard } from "@/components/budget/category-card";
+import { useFixedPayment } from "@/hooks/use-fixed-payment";
 import { useApp, useMoney, useT } from "@/hooks/use-app";
 import { calculateAssignedMoney } from "@/lib/calculations/budget";
 import { calculateGoalBalance } from "@/lib/calculations/savings";
@@ -20,6 +21,7 @@ export function CategorySection({ type, view, onAdd, onEditSavings }: CategorySe
   const money = useMoney();
   const { data } = useApp();
   const items = view.categories.filter((c) => c.type === type);
+  const togglePaid = useFixedPayment();
   const title = t.categoryTypes[type];
 
   return (
@@ -59,6 +61,7 @@ export function CategorySection({ type, view, onAdd, onEditSavings }: CategorySe
                 goalBalance={goal ? calculateGoalBalance(goal, data) : null}
                 onEditSavings={onEditSavings}
                 monthProgress={view.monthProgress}
+                onTogglePaid={(paid) => togglePaid(c, view.key, view.stats.get(c.id)!.spent, paid)}
               />
             );
           })}

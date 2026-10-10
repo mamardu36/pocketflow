@@ -3,9 +3,10 @@ import { nowISO } from "@/lib/utils";
 import type { AppData } from "@/types";
 
 /**
- * Builds the inverse of a deletion: given the state before and after, returns an updater
- * that puts back what was removed (records and goal links), without touching anything
- * changed in between. Records whose parent has disappeared since are skipped.
+ * Builds the inverse of an action: given the state before and after, returns an updater
+ * that puts back what was removed (records and goal links) and removes the expenses or
+ * savings entries that were added, without touching anything changed in between.
+ * Records whose parent has disappeared since are skipped.
  */
 export function buildUndo(prev: AppData, next: AppData): (current: AppData) => AppData {
   const diff = diffData(prev, next);
@@ -20,6 +21,10 @@ export function buildUndo(prev: AppData, next: AppData): (current: AppData) => A
     savingsGoals: pick(prev.savingsGoals, diff.savingsGoals.deletes),
     savingsTransactions: pick(prev.savingsTransactions, diff.savingsTransactions.deletes),
   };
+  const prevTx = new Set(prev.transactions.map((t) => t.id));
+  const prevSavingsTx = new Set(prev.savingsTransactions.map((t) => t.id));
+  const addedTx = new Set(diff.transactions.upserts.filter((t) => !prevTx.has(t.id)).map((t) => t.id));
+  const addedSavingsTx = new Set(diff.savingsTransactions.upserts.filter((t) => !prevSavingsTx.has(t.id)).map((t) => t.id));
   // Deleting a goal unlinks its savings categories: remember the links.
   const prevCategories = new Map(prev.categories.map((c) => [c.id, c]));
   const relinks = diff.categories.upserts
@@ -43,13 +48,13 @@ export function buildUndo(prev: AppData, next: AppData): (current: AppData) => A
     ];
     const categoryIds = has(categories);
     const transactions = [
-      ...current.transactions,
+      ...current.transactions.filter((t) => !addedTx.has(t.id)),
       ...removed.transactions.filter(
         (t) => budgetIds.has(t.budgetId) && categoryIds.has(t.categoryId) && !has(current.transactions).has(t.id),
       ),
     ];
     const savingsTransactions = [
-      ...current.savingsTransactions,
+      ...current.savingsTransactions.filter((t) => !addedSavingsTx.has(t.id)),
       ...removed.savingsTransactions.filter(
         (s) => goalIds.has(s.goalId) && (s.budgetId === null || budgetIds.has(s.budgetId)) && !has(current.savingsTransactions).has(s.id),
       ),

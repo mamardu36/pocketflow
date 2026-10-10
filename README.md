@@ -40,13 +40,15 @@ PocketFlow est une application web (PWA) de budget mensuel pour étudiants et je
 **Budget mensuel.** Au premier lancement d'un mois, l'app demande : *How much money do you want to use this month?* Le montant reste modifiable. La carte principale affiche le budget, le montant réparti, le **Left to assign** (en grand) et une barre de répartition par catégorie.
 
 **Catégories en 3 groupes.**
-- *Fixed expenses* (loyer, téléphone…) : option « récurrent », l'allocation est recréée chaque mois sans être marquée payée.
+- *Fixed expenses* (loyer, téléphone…) : option « récurrent », l'allocation est recréée chaque mois sans être marquée payée. Chaque carte a une case **Payé** : la cocher enregistre le montant restant comme dépense (avec *Annuler*), la décocher retire les paiements du mois. « Ajouter un autre montant » reste possible depuis le détail (loyer différent ce mois-ci, par exemple).
 - *Variable budget* (courses, transport, sorties…) : barre de progression, reste, dépensé.
 - *Savings* : chaque catégorie d'épargne alimente un objectif d'épargne.
 
 Répartir plus que le budget affiche un avertissement clair (« €50 over budget ») sans bloquer. Une catégorie dépassée affiche « €18 over budget » ; une dépense n'est jamais bloquée.
 
 **Dépenses.** Ajout rapide depuis n'importe quel écran (bottom sheet sur mobile) : montant, description facultative, catégorie, date. La description propose les libellés déjà utilisés, et la catégorie est choisie automatiquement d'après la dernière dépense du même nom (« Carrefour » → Courses). Un choix fait à la main n'est jamais remplacé.
+
+**Notifications discrètes.** Une seule à la fois, en bas de l'écran (au-dessus de la barre de navigation sur téléphone), et seulement quand l'écran ne montre pas déjà le résultat : dépense ajoutée (avec le reste de la catégorie), case Payé, suppression (avec *Annuler*), erreurs et synchronisation.
 
 **Suppressions annulables.** Supprimer une dépense, une catégorie, un objectif ou une entrée d'épargne se fait d'un geste, avec un bouton *Annuler* pendant 6 secondes. Seules les actions lourdes (tout réinitialiser, importer, effacer les données locales, supprimer le compte) demandent encore une confirmation. Page Expenses : regroupement Today / Yesterday / date, recherche, filtre par catégorie, tri, modification, suppression, total du mois, changement de mois.
 
