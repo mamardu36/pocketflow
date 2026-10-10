@@ -288,9 +288,6 @@ export const fr: Messages = {
     about: "À propos",
     feedback: "Donner mon avis",
     feedbackHint: "Dis-moi ce qui marche et ce qui gêne",
-    feedbackSubject: "Avis sur PocketFlow",
-    feedbackBody: (details) =>
-      `Ce que j'ai aimé :\n\n\nCe qui m'a gêné ou que je n'ai pas compris :\n\n\nUne idée :\n\n\n—\n${details}`,
     privacy: "Confidentialité",
     version: (v) => `Version ${v}`,
   },

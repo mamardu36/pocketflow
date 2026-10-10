@@ -200,18 +200,9 @@ export default function SettingsPage() {
     });
   };
 
-  // Opens the mail app with a short template; technical details help reproduce problems.
+  // Opens the mail app with just the address filled in.
   const sendFeedback = () => {
-    const details = [
-      `${APP_CONFIG.name} ${APP_CONFIG.version}`,
-      `mode: ${mode ?? "-"}`,
-      `lang: ${data.preferences.language}`,
-      `screen: ${window.screen.width}×${window.screen.height}`,
-      navigator.userAgent,
-    ].join(" · ");
-    const subject = encodeURIComponent(t.settings.feedbackSubject);
-    const body = encodeURIComponent(t.settings.feedbackBody(details));
-    window.location.href = `mailto:${APP_CONFIG.contactEmail}?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${APP_CONFIG.contactEmail}`;
   };
 
   const localGuestData = mode === "cloud" && hasUserData(LocalRepository.guest().peek());

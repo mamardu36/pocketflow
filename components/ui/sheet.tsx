@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +16,29 @@ interface SheetProps {
   closeLabel?: string;
 }
 
+/**
+ * The part of the screen actually visible. On phones the on-screen keyboard covers the bottom of the
+ * page without resizing it (iOS), so a bottom sheet anchored to the page would slide under the keyboard.
+ * Following window.visualViewport keeps the sheet right above the keyboard.
+ */
+function useVisibleArea(active: boolean): CSSProperties | undefined {
+  const [area, setArea] = useState<{ top: number; height: number } | null>(null);
+  useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!active || !vv) return;
+    const update = () => setArea({ top: vv.offsetTop, height: vv.height });
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setArea(null);
+    };
+  }, [active]);
+  return area ? { top: area.top, height: area.height, bottom: "auto" } : undefined;
+}
+
 const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 export function Sheet({ open, onClose, title, description, children, variant = "sheet", closeLabel = "Close" }: SheetProps) {
@@ -24,16 +47,37 @@ export function Sheet({ open, onClose, title, description, children, variant = "
   onCloseRef.current = onClose;
   const titleId = useId();
   const descId = useId();
+  const visibleArea = useVisibleArea(open);
 
   useEffect(() => {
     if (!open) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
-    const { overflow } = document.body.style;
+    const html = document.documentElement;
+    const previous = { body: document.body.style.overflow, html: html.style.overflow };
     document.body.style.overflow = "hidden";
+    html.style.overflow = "hidden";
 
     const panel = panelRef.current;
     const autofocus = panel?.querySelector<HTMLElement>("[data-autofocus]") ?? panel?.querySelector<HTMLElement>(FOCUSABLE);
-    autofocus?.focus();
+    // preventScroll: without it, phones scroll the page to the field while the sheet is still sliding in.
+    autofocus?.focus({ preventScroll: true });
+
+    // When a field gets focus (and the keyboard appears), bring it into view inside the sheet only.
+    const scroller = panel?.querySelector<HTMLElement>("[data-sheet-scroll]");
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onFocusIn = (e: FocusEvent) => {
+      const field = e.target as HTMLElement;
+      if (!scroller || !field.matches("input, textarea, select")) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const box = scroller.getBoundingClientRect();
+        const rect = field.getBoundingClientRect();
+        const margin = 16;
+        if (rect.bottom > box.bottom - margin) scroller.scrollTop += rect.bottom - box.bottom + margin;
+        else if (rect.top < box.top + margin) scroller.scrollTop -= box.top + margin - rect.top;
+      }, 320); // after the keyboard animation
+    };
+    panel?.addEventListener("focusin", onFocusIn);
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -56,7 +100,10 @@ export function Sheet({ open, onClose, title, description, children, variant = "
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
+      panel?.removeEventListener("focusin", onFocusIn);
+      clearTimeout(timer);
+      document.body.style.overflow = previous.body;
+      html.style.overflow = previous.html;
       previouslyFocused?.focus?.();
     };
   }, [open]);
@@ -65,7 +112,10 @@ export function Sheet({ open, onClose, title, description, children, variant = "
 
   const isDialog = variant === "dialog";
   return createPortal(
-    <div className={cn("fixed inset-0 z-50 flex justify-center", isDialog ? "items-center p-4" : "items-end sm:items-center sm:p-4")}>
+    <div
+      style={visibleArea}
+      className={cn("fixed inset-0 z-50 flex justify-center", isDialog ? "items-center p-4" : "items-end sm:items-center sm:p-4")}
+    >
       <div aria-hidden className="absolute inset-0 animate-fade-in bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
       <div
         ref={panelRef}
@@ -74,7 +124,8 @@ export function Sheet({ open, onClose, title, description, children, variant = "
         aria-labelledby={titleId}
         aria-describedby={description ? descId : undefined}
         className={cn(
-          "relative flex max-h-[92dvh] w-full flex-col overflow-hidden bg-card text-foreground shadow-lift",
+          // 92% of the visible area (above the keyboard when it's open).
+          "relative flex max-h-[92%] w-full flex-col overflow-hidden bg-card text-foreground shadow-lift",
           isDialog
             ? "max-w-sm animate-dialog-in rounded-3xl"
             : "animate-sheet-up rounded-t-4xl pb-[env(safe-area-inset-bottom)] sm:max-w-md sm:animate-dialog-in sm:rounded-4xl sm:pb-0",
@@ -103,7 +154,9 @@ export function Sheet({ open, onClose, title, description, children, variant = "
             </button>
           )}
         </div>
-        <div className="overflow-y-auto overscroll-contain px-5 pb-5 pt-2">{children}</div>
+        <div data-sheet-scroll className="overflow-y-auto overscroll-contain px-5 pb-5 pt-2">
+          {children}
+        </div>
       </div>
     </div>,
     document.body,

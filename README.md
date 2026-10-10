@@ -334,7 +334,7 @@ tests/                    Tests Vitest
 ## Personnalisation
 
 - **Nom de l'app** : `config/app.ts` (`APP_CONFIG.name`), également utilisé par le manifest et les exports.
-- **Adresse de contact** : `config/app.ts` (`APP_CONFIG.contactEmail`). Elle active le bouton *Donner mon avis* (Réglages → À propos), qui ouvre un e-mail pré-rempli avec la version, la langue et le type d'appareil, et elle s'affiche sur la page de confidentialité. Vide = bouton masqué.
+- **Adresse de contact** : `config/app.ts` (`APP_CONFIG.contactEmail`). Elle active le bouton *Donner mon avis* (Réglages → À propos), qui ouvre l'app Mail avec cette adresse, et elle s'affiche sur la page de confidentialité. Vide = bouton masqué.
 - **Version affichée** : `APP_CONFIG.version`, à augmenter à chaque mise à jour notable.
 - **Logo** : `components/ui/logo.tsx` (dans l'app) ; les icônes `public/icons/*.png` et `app/icon.svg` reprennent le même dessin.
 - **Page de confidentialité** : `/privacy`, textes dans `lib/i18n/en.ts` et `fr.ts` (section `privacy`). C'est aussi l'URL à fournir aux stores.

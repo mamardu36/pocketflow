@@ -28,6 +28,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  // Android: the keyboard shrinks the page instead of covering it (iOS is handled in the Sheet component).
+  interactiveWidget: "resizes-content",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: APP_CONFIG.themeColor.light },
     { media: "(prefers-color-scheme: dark)", color: APP_CONFIG.themeColor.dark },

@@ -285,9 +285,6 @@ export const en = {
     about: "About",
     feedback: "Send feedback",
     feedbackHint: "Tell me what works and what doesn't",
-    feedbackSubject: "PocketFlow feedback",
-    feedbackBody: (details: string) =>
-      `What I liked:\n\n\nWhat bothered me or confused me:\n\n\nAn idea:\n\n\n—\n${details}`,
     privacy: "Privacy",
     version: (v: string) => `Version ${v}`,
   },

@@ -59,7 +59,7 @@ export const MoneyInput = forwardRef<HTMLInputElement, MoneyInputProps>(function
             onChange={(e) => onValueChange(e.target.value.replace(/[^\d.,\s]/g, ""))}
             // size=1 removes the browser's default ~20-character width; the grid cell sets the real width.
             size={1}
-            className="w-full min-w-0 bg-transparent text-foreground [grid-area:1/1] placeholder:text-muted-foreground/50 focus:outline-none"
+            className="w-0 min-w-full bg-transparent text-foreground [grid-area:1/1] placeholder:text-muted-foreground/50 focus:outline-none"
             {...props}
           />
         </span>
