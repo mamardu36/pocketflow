@@ -10,6 +10,8 @@ export const STORAGE_KEYS = {
   theme: `${p}:theme`,
   cloudCache: (userId: string) => `${p}:cloud-cache:${userId}`,
   migrationHandled: (userId: string) => `${p}:migration-handled:${userId}`,
+  /** When the "keep your budget safe" card was last dismissed (ms timestamp). */
+  installNudgeDismissed: `${p}:install-nudge-dismissed`,
   /** Set while local changes haven't reached Supabase yet (e.g. offline). */
   cloudPending: (userId: string) => `${p}:cloud-pending:${userId}`,
 } as const;

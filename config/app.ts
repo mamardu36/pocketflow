@@ -11,7 +11,7 @@ export const APP_CONFIG = {
   defaultCurrency: "EUR",
   defaultLanguage: "en",
   /** Shown in Settings → About. Bump it when you ship a notable change. */
-  version: "1.4.1",
+  version: "1.5.0",
   /**
    * Where "Send feedback" emails go, also shown on the privacy page.
    * Leave empty to hide the feedback button and the contact line.

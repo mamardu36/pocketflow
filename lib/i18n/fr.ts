@@ -369,6 +369,18 @@ export const fr: Messages = {
     keep: "Tes données locales restent sur cet appareil dans tous les cas.",
   },
   demo: { badge: "Démo", banner: "Tu explores des données de démo.", reset: "Réinitialiser la démo", exit: "Quitter la démo", resetDone: "Démo réinitialisée" },
+  install: {
+    title: "Ne perds pas ton budget",
+    body: "Les navigateurs peuvent effacer les données des sites que tu n'as pas ouverts depuis quelques jours. Installe PocketFlow sur ton écran d'accueil ou crée un compte pour les garder.",
+    bodyIos: "Safari peut effacer les données des sites que tu n'as pas ouverts depuis quelques jours. Crée un compte pour garder ton budget en sécurité, sur tous tes appareils.",
+    install: "Installer",
+    createAccount: "Créer un compte",
+    later: "Plus tard",
+    iosTitle: "Installer PocketFlow",
+    iosSteps: ["Touche le bouton Partager dans la barre de Safari", "Choisis « Sur l'écran d'accueil »", "Ouvre PocketFlow depuis la nouvelle icône"],
+    iosWarning: "Sur iPhone, l'app installée démarre vide : elle ne voit pas ce que tu as saisi dans Safari. Pour y retrouver ton budget, crée d'abord un compte, puis connecte-toi dans l'app installée.",
+    iosFresh: "Compris",
+  },
   sync: {
     pending: "Hors ligne · modifications gardées sur cet appareil",
     pendingToast: "Tu es hors ligne. Tes modifications sont gardées sur cet appareil et seront synchronisées automatiquement.",

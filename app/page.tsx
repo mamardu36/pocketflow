@@ -14,6 +14,7 @@ import { MonthlyBudgetCard } from "@/components/budget/monthly-budget-card";
 import { PreviousMonthBanner } from "@/components/budget/previous-month-banner";
 import { useExpenseSheet } from "@/components/expenses/expense-sheet-provider";
 import { PageHeader } from "@/components/navigation/page-header";
+import { InstallNudge } from "@/components/pwa/install-nudge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { CATEGORY_TYPES, ONBOARDING_SUGGESTIONS } from "@/constants/categories";
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-5">
       <PageHeader title={<MonthSelector />} />
+      <InstallNudge />
 
       {!view ? (
         <MonthSetup key={`${month.year}-${month.month}`} monthKey={month} />

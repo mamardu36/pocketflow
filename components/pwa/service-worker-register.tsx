@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
+import { listenForInstallPrompt } from "@/lib/pwa/install";
+
+// Chrome fires `beforeinstallprompt` once, early: start listening as soon as this module loads.
+listenForInstallPrompt();
 
 /** Registers /sw.js in production only (avoids stale caches while developing). */
 export function ServiceWorkerRegister() {

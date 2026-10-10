@@ -366,6 +366,18 @@ export const en = {
     keep: "Your local data stays on this device either way.",
   },
   demo: { badge: "Demo", banner: "You're exploring demo data.", reset: "Reset demo", exit: "Exit demo", resetDone: "Demo data reset" },
+  install: {
+    title: "Keep your budget safe",
+    body: "Browsers can erase data from sites you haven't opened for a few days. Install PocketFlow on your home screen or create an account to keep it.",
+    bodyIos: "Safari can erase data from sites you haven't opened for a few days. Create an account to keep your budget safe, on all your devices.",
+    install: "Install",
+    createAccount: "Create an account",
+    later: "Later",
+    iosTitle: "Install PocketFlow",
+    iosSteps: ["Tap the Share button in Safari's toolbar", "Choose “Add to Home Screen”", "Open PocketFlow from the new icon"],
+    iosWarning: "On iPhone, the installed app starts empty: it can't see what you entered in Safari. To find your budget there, create an account first, then sign in from the installed app.",
+    iosFresh: "Got it",
+  },
   sync: {
     pending: "Offline · changes saved on this device",
     pendingToast: "You're offline. Your changes are saved on this device and will sync automatically.",
